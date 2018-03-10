@@ -201,6 +201,11 @@ void SetPixel(struct POINT2D point, BYTE *fBuffer)
 
 void drawLine(struct POINT2D p1, struct POINT2D p2, BYTE *fBuffer)
 {
+	double x = (double)(p1.x);
+	double y = (double)(p1.y);
+	double r = (double)(p1.r);
+	double g = (double)(p1.g);
+	double b = (double)(p1.b);
 	int dx = p2.x - p1.x;
 	int dy = p2.y - p1.y;
 	int steps = abs(dx) > abs(dy) ? abs(dx) : abs(dy);
@@ -210,18 +215,13 @@ void drawLine(struct POINT2D p1, struct POINT2D p2, BYTE *fBuffer)
 	double x_inc = dx / (double)steps;
 	double y_inc = dy / (double)steps;
 	SetPixel(p1, fBuffer);
-	double r_current = double(p1.r);
-	double g_current = double(p1.g);
-	double b_current = double(p1.b);
-	for (int i = 0; i < steps; i++, p1.x += x_inc, p1.y += y_inc) {
-		p1.x = ROUND(p1.x);
-		p1.y = ROUND(p1.y);
-		r_current += step_r;
-		g_current += step_g;
-		b_current += step_b;
-		p1.r = r_current;
-		p1.g = g_current;
-		p1.b = b_current;
+	for (int i = 0; i < steps; i++) {
+		x += x_inc;
+		y += y_inc;
+		r += step_r;
+		g += step_g;
+		b += step_b;
+		p1 = {ROUND(x), ROUND(y), (BYTE)r, (BYTE)g, (BYTE)b};
 		SetPixel(p1, fBuffer);
 	}
 }
@@ -238,9 +238,9 @@ struct POINT2D randPoint()
 	struct POINT2D point = {
 		rand() % FRAME_WIDE,
 		rand() % FRAME_HIGH,
-		rand() % 255,
-		rand() % 255,
-		rand() % 255
+		(BYTE)(rand() % 255),
+		(BYTE)(rand() % 255),
+		(BYTE)(rand() % 255)
 	};
 	return point;
 }
@@ -285,10 +285,10 @@ void BuildFrame(BYTE *pFrame, int view)
 	// struct POINT2D point1 = randPoint();
 	// struct POINT2D point2 = randPoint();
 	// struct POINT2D point3 = randPoint();
-	struct POINT2D point1 = {100, 52, 255, 255, 255};
-	struct POINT2D point2 = {111, 233, 255, 255, 255};
-	struct POINT2D point3 = {240, 86, 255, 255, 255};
+	struct POINT2D p1 = randPoint();
+	struct POINT2D p2 = randPoint();
+	struct POINT2D p3 = randPoint();
 	//triangle_edge(point1, point2, point3, pFrame);
-	drawLine(point1, point2, pFrame);
+	drawLine(p1, p2, pFrame);
 }
 
