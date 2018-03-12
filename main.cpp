@@ -1,7 +1,9 @@
 
-#include <stdlib.h>			//- for exit()
-#include <stdio.h>			//- for sprintf()
-#include <string.h>			//- for memset()
+#include <cstdlib>			//- for exit()
+#include <cstdio>			//- for sprintf()
+#include <cstring>			//- for memset()
+#include <ctime>			//- for random seed
+#include <unistd.h>			//- for sleep()
 
 #ifdef _WIN32
 	#include "libs/glut.h"
@@ -46,6 +48,8 @@ void OnDisplay(void);
 void reshape(int w, int h);
 void OnMouse(int button, int state, int x, int y);
 void OnKeypress(unsigned char key, int x, int y);
+void sort_vertices(struct POINT2D **triangle);
+void draw_line(struct POINT2D p1, struct POINT2D p2, BYTE *fBuffer);
 
 ////////////////////////////////////////////////////////
 // Program Entry Poinr
@@ -167,7 +171,7 @@ void Interlace(BYTE* pL, BYTE* pR)
 
 void DrawFrame()
 {
-	//ClearScreen();
+	ClearScreen();
 	
 	if (!stereo) BuildFrame(pFrameR, 0);
 	else {
@@ -199,7 +203,7 @@ void SetPixel(struct POINT2D point, BYTE *fBuffer)
 	fBuffer[3 * (point.y * FRAME_WIDE + point.x) + 2] = point.b; // B
 }
 
-void drawLine(struct POINT2D p1, struct POINT2D p2, BYTE *fBuffer)
+void draw_line(struct POINT2D p1, struct POINT2D p2, BYTE *fBuffer)
 {
 	double x = (double)(p1.x);
 	double y = (double)(p1.y);
@@ -226,23 +230,72 @@ void drawLine(struct POINT2D p1, struct POINT2D p2, BYTE *fBuffer)
 	}
 }
 
-void triangle_edge(struct POINT2D p1, struct POINT2D p2, struct POINT2D p3, BYTE *fBuffer)
+void draw_tri(struct POINT2D p1, struct POINT2D p2, struct POINT2D p3, BYTE *fBuffer)
 {
-	drawLine(p1, p2, fBuffer);
-	drawLine(p1, p3, fBuffer);
-	drawLine(p2, p3, fBuffer);
+	draw_line(p1, p2, fBuffer);
+	draw_line(p1, p3, fBuffer);
+	draw_line(p2, p3, fBuffer);
 }
 
-struct POINT2D randPoint()
+void fill_tri(struct POINT2D **triangle, BYTE *fBuffer)
 {
-	struct POINT2D point = {
-		rand() % FRAME_WIDE,
-		rand() % FRAME_HIGH,
-		(BYTE)(rand() % 255),
-		(BYTE)(rand() % 255),
-		(BYTE)(rand() % 255)
-	};
+	sort_vertices(triangle);
+	double fromx = (double)triangle[0]->x;
+	double tox = (double)triangle[0]->x;
+	int from_dx = (triangle[1]->x - triangle[0]->x);
+	int to_dx = (triangle[2]->x - triangle[0]->x);
+	int from_dy = (triangle[1]->y - triangle[0]->y);
+	int to_dy = (triangle[2]->y - triangle[0]->y);
+	double from_inc = from_dx / (double)from_dy;
+	double to_inc = to_dx / (double)to_dy;
+	for (int y = triangle[0]->y; y < triangle[2]->y; y++) {
+		if (y == triangle[1]->y) {
+			from_dx = triangle[2]->x - triangle[1]->x;
+			to_dx = triangle[2]->x - triangle[0]->x;
+			from_dy = triangle[2]->y - triangle[1]->y;
+			to_dy = triangle[2]->y - triangle[0]->y;
+			from_inc = from_dx / (double)from_dy;
+			to_inc = to_dx / (double)to_dy;
+		}
+		fromx += from_inc;
+		tox += to_inc;
+		draw_line({ROUND(fromx), y, 255, 255, 255}, {ROUND(tox), y, 255, 255, 255}, fBuffer);
+	}
+}
+
+struct POINT2D rand_point()
+{
+	struct POINT2D point;
+	point.x = rand() % FRAME_WIDE;
+	point.y = rand() % FRAME_HIGH;
+	point.r = (BYTE)(rand() % 255);
+	point.g = (BYTE)(rand() % 255);
+	point.b = (BYTE)(rand() % 255);
 	return point;
+}
+
+/*
+ * Finds sorts the points in order of y value
+ * So that top, middle, and bottom can be identified
+ */
+void sort_vertices(struct POINT2D **triangle)
+{
+	struct POINT2D *temp = NULL;
+	if (triangle[0]->y > triangle[2]->y) {
+		temp = triangle[0];
+		triangle[0] = triangle[2];
+		triangle[2] = temp;
+	}
+	if (triangle[0]->y > triangle[1]->y) {
+		temp = triangle[0];
+		triangle[0] = triangle[1];
+		triangle[1] = temp;
+	}
+	if (triangle[1]->y > triangle[2]->y) {
+		temp = triangle[1];
+		triangle[1] = triangle[2];
+		triangle[2] = temp;
+	}
 }
 
 ////////////////////////////////////////////////////////
@@ -251,44 +304,13 @@ struct POINT2D randPoint()
 
 void BuildFrame(BYTE *pFrame, int view)
 {
-	// BYTE*	screen = (BYTE*)pFrame;		// use copy of screen pointer for safety
-
-	// int		SBox = 250;					// size of box in pixels
-	// int		channels = 3;				// number of colour channels
-
-	// ////////////////////////////////////////////
-	// // Display some animated shaded boxes - hacky method
-	// ////////////////////////////////////////////
-
-	// for (int x= xypos.x; x < xypos.x+SBox ; x++)
-	// 	for (int y= xypos.y; y <xypos.y+SBox ; y++)
-	// 	{
-	// 		screen[channels*(x + view + y * FRAME_WIDE) + shade] = y-xypos.y;		// for 24 bit screen
-	// 	}
-
-	// if (++xypos.x +SBox  + view >= FRAME_WIDE ) xypos.x = 0;		// do not write past screen X boundary
-	// if (++xypos.y +SBox >= FRAME_HIGH ) xypos.y = 0;		// do not write past screen Y boundary
-
-	// 	//xypos.x = 200;
-	// 	//xypos.y = 200;
-	// //-- get rid of horizontal background edge --
-	// if (xypos.y) for (int x= xypos.x; x < xypos.x+SBox ; x++)
-	// {
-	// 	screen[channels*(x + view + (xypos.y-1) * FRAME_WIDE) + shade] = 0;
-	// }
-
-	// //-- get rid of vertical background edge --
-	// if (xypos.x) for (int y= xypos.y; y <xypos.y+SBox ; y++)
-	// {
-	// 	screen[channels*(view + xypos.x-1 + y * FRAME_WIDE) + shade] = 0;
-	// }
-	// struct POINT2D point1 = randPoint();
-	// struct POINT2D point2 = randPoint();
-	// struct POINT2D point3 = randPoint();
-	struct POINT2D p1 = randPoint();
-	struct POINT2D p2 = randPoint();
-	struct POINT2D p3 = randPoint();
-	//triangle_edge(point1, point2, point3, pFrame);
-	drawLine(p1, p2, pFrame);
+	struct POINT2D p1 = rand_point();
+	struct POINT2D p2 = rand_point();
+	struct POINT2D p3 = rand_point();
+	struct POINT2D *tri[3] = {&p1, &p2, &p3};
+	//topVertex = {topVertex->x, topVertex->y, 255, 0, 0};
+	draw_tri(p1, p2, p3, pFrame);
+	fill_tri(tri, pFrame);
+	sleep(1);
 }
 
