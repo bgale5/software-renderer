@@ -101,14 +101,14 @@ void OnIdle(void)
 	glutPostRedisplay();
 }
 
-
 void OnDisplay(void)
 {
-	glClear(GL_COLOR_BUFFER_BIT);
-	glRasterPos2i(0, 0);
-	glDrawPixels(FRAME_WIDE, FRAME_HIGH, GL_RGB,GL_UNSIGNED_BYTE, (GLubyte*)pFrameR);
-	glutSwapBuffers();
-	glFlush();
+    glClear(GL_COLOR_BUFFER_BIT);
+    glPixelZoom( 1, -1 );
+    glRasterPos2i(0, FRAME_HIGH-1);
+    glDrawPixels(FRAME_WIDE, FRAME_HIGH, GL_RGB,GL_UNSIGNED_BYTE, (GLubyte*)pFrameR);
+    glutSwapBuffers();
+    glFlush();
 }
 
 void reshape(int w, int h)
@@ -255,28 +255,39 @@ void fill_tri(struct POINT2D **triangle, BYTE *fBuffer)
 		draw_line(*(triangle[1]), *(triangle[2]), fBuffer);
 		return;
 	}
+	// Placeholder variables for maintaining current value after truncation
 	double fromx = (double)triangle[0]->x;
 	double tox = (double)triangle[0]->x;
-	
-	int from_dx = (triangle[1]->x - triangle[0]->x);
-	int from_dy = (triangle[1]->y - triangle[0]->y);
-	int to_dx = (triangle[2]->x - triangle[0]->x);
-	int to_dy = (triangle[2]->y - triangle[0]->y);
-
 	double fromr = (double)triangle[0]->r;
 	double fromg = (double)triangle[0]->g;
 	double fromb = (double)triangle[0]->b;
 	double tor = (double)triangle[0]->r;
 	double tog = (double)triangle[0]->g;
 	double tob = (double)triangle[0]->b;
+	
+	// Gradients
+	int a, b;
+	if (triangle[0]->y == triangle[1]->y) { // Handle flat-topped triangles
+		printf("It's a flat top\n");
+		a = 2;
+		b = 1;
+		fromx = double(triangle[1]->x);
+	} else {
+		a = 1;
+		b = 0;	}
+	int from_dx = (triangle[a]->x - triangle[b]->x);
+	int from_dy = (triangle[a]->y - triangle[b]->y);
+	int from_dr = (triangle[a]->r - triangle[b]->r);
+	int from_dg = (triangle[a]->g - triangle[b]->g);
+	int from_db = (triangle[a]->b - triangle[b]->b);
 
-	int from_dr = (triangle[1]->r - triangle[0]->r);
-	int from_dg = (triangle[1]->g - triangle[0]->g);
-	int from_db = (triangle[1]->b - triangle[0]->b);
+	int to_dx = (triangle[2]->x - triangle[0]->x);
+	int to_dy = (triangle[2]->y - triangle[0]->y);
 	int to_dr = (triangle[2]->r - triangle[0]->r);
 	int to_dg = (triangle[2]->g - triangle[0]->g);
 	int to_db = (triangle[2]->b - triangle[0]->b);
 
+	// Step (increment) values
 	double from_inc = from_dx / (double)from_dy;
 	double to_inc = to_dx / (double)to_dy;
 	double from_r_inc = from_dr / (double)from_dy;
@@ -287,10 +298,11 @@ void fill_tri(struct POINT2D **triangle, BYTE *fBuffer)
 	double to_b_inc = to_db / (double)to_dy; //TODO: Refactor
 
 	for (int y = triangle[0]->y; y < triangle[2]->y; y++) {
-		if (y == triangle[1]->y) {
+		if (triangle[1]->y == y) {
 			from_dx = triangle[2]->x - triangle[1]->x;
 			from_dy = triangle[2]->y - triangle[1]->y;
 			from_inc = from_dx / (double)from_dy;
+
 			from_dr = triangle[2]->r - triangle[1]->r;
 			from_dg = triangle[2]->g - triangle[1]->g;
 			from_db = triangle[2]->b - triangle[1]->b;
@@ -306,7 +318,6 @@ void fill_tri(struct POINT2D **triangle, BYTE *fBuffer)
 		tor += to_r_inc;
 		tog += to_g_inc;
 		tob += to_b_inc;
-		printf("%d ||%d %d %d | %d %d %d\n", y, (BYTE)fromr, (BYTE)fromg, (BYTE)fromb, (BYTE)fromg, (BYTE)tor, (BYTE)tog, (BYTE)tob);
 		draw_line({ROUND(fromx), y, (BYTE)fromr, (BYTE)(fromg), (BYTE)(fromb)}, {ROUND(tox), y, (BYTE)(tor), (BYTE)(tog), (BYTE)(tob)}, fBuffer);
 	}
 }
@@ -357,11 +368,8 @@ void BuildFrame(BYTE *pFrame, int view)
 	struct POINT2D p2 = rand_point();
 	struct POINT2D p3 = rand_point();
 	struct POINT2D *tri[3] = {&p1, &p2, &p3};
-	// p1 = {100, p1.y, 255, 0, 0};
-	// p2 = {100, p2.y, 0, 255, 0};
-	// p3 = {100, p3.y, 0, 0, 255};
 	fill_tri(tri, pFrame);
-	//draw_tri(p1, p2, p3, pFrame);
-	sleep(1);
+	draw_tri(p1, p2, p3, pFrame);
+	sleep(5);
 }
 
