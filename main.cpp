@@ -237,18 +237,31 @@ void draw_tri(struct POINT2D p1, struct POINT2D p2, struct POINT2D p3, BYTE *fBu
 	draw_line(p2, p3, fBuffer);
 }
 
+bool collinear(struct POINT2D **tri)
+{
+	double grad = (double)(tri[1]->y - tri[0]->y) / (double)(tri[1]->x - tri[0]->x);
+	if ((double)(tri[2]->y - tri[1]->y) / (double)(tri[2]->x - tri[1]->x) != grad)
+		return false;
+	if ((double)(tri[2]->y - tri[0]->y) / (double)(tri[2]->x - tri[0]->x) != grad)
+		return false;
+	return true;
+}
+
 void fill_tri(struct POINT2D **triangle, BYTE *fBuffer)
 {
-	printf("New triangle\n");
 	sort_vertices(triangle);
+	if (collinear(triangle)) {
+		draw_line(*(triangle[0]), *(triangle[1]), fBuffer);
+		draw_line(*(triangle[1]), *(triangle[2]), fBuffer);
+		return;
+	}
 	double fromx = (double)triangle[0]->x;
 	double tox = (double)triangle[0]->x;
+	
 	int from_dx = (triangle[1]->x - triangle[0]->x);
-	int to_dx = (triangle[2]->x - triangle[0]->x);
 	int from_dy = (triangle[1]->y - triangle[0]->y);
+	int to_dx = (triangle[2]->x - triangle[0]->x);
 	int to_dy = (triangle[2]->y - triangle[0]->y);
-	double from_inc = from_dx / (double)from_dy;
-	double to_inc = to_dx / (double)to_dy;
 
 	double fromr = (double)triangle[0]->r;
 	double fromg = (double)triangle[0]->g;
@@ -264,36 +277,26 @@ void fill_tri(struct POINT2D **triangle, BYTE *fBuffer)
 	int to_dg = (triangle[2]->g - triangle[0]->g);
 	int to_db = (triangle[2]->b - triangle[0]->b);
 
+	double from_inc = from_dx / (double)from_dy;
+	double to_inc = to_dx / (double)to_dy;
 	double from_r_inc = from_dr / (double)from_dy;
 	double from_g_inc = from_dg / (double)from_dy;
 	double from_b_inc = from_db / (double)from_dy;
 	double to_r_inc = to_dr / (double)to_dy;
 	double to_g_inc = to_dg / (double)to_dy;
-	double to_b_inc = to_db / (double)to_dy;
+	double to_b_inc = to_db / (double)to_dy; //TODO: Refactor
 
 	for (int y = triangle[0]->y; y < triangle[2]->y; y++) {
 		if (y == triangle[1]->y) {
 			from_dx = triangle[2]->x - triangle[1]->x;
 			from_dy = triangle[2]->y - triangle[1]->y;
-			//to_dx = triangle[2]->x - triangle[0]->x;
-			//to_dy = triangle[2]->y - triangle[0]->y;
-			
 			from_inc = from_dx / (double)from_dy;
-			//to_inc = to_dx / (double)to_dy;
-
 			from_dr = triangle[2]->r - triangle[1]->r;
 			from_dg = triangle[2]->g - triangle[1]->g;
 			from_db = triangle[2]->b - triangle[1]->b;
-			//to_dr = triangle[2]->r - triangle[0]->r;
-			//to_dg = triangle[2]->g - triangle[0]->g;
-			//to_db = triangle[2]->b - triangle[0]->b;
-
 			from_r_inc = from_dr / (double)from_dy;
 			from_g_inc = from_dg / (double)from_dy;
 			from_b_inc = from_db / (double)from_dy;
-			//to_r_inc = to_dr / (double)from_dy;
-			//to_g_inc = to_dg / (double)from_dy;
-			//to_b_inc = to_db / (double)from_dy;
 		}
 		fromx += from_inc;
 		tox += to_inc;
@@ -343,6 +346,7 @@ void sort_vertices(struct POINT2D **triangle)
 	}
 }
 
+
 ////////////////////////////////////////////////////////
 // Drawing Funcion
 ////////////////////////////////////////////////////////
@@ -353,11 +357,11 @@ void BuildFrame(BYTE *pFrame, int view)
 	struct POINT2D p2 = rand_point();
 	struct POINT2D p3 = rand_point();
 	struct POINT2D *tri[3] = {&p1, &p2, &p3};
-	p1 = {p1.x, p1.y, 255, 0, 0};
-	p2 = {p2.x, p2.y, 0, 255, 0};
-	p3 = {p3.x, p3.y, 0, 0, 255};
-	//draw_tri(p1, p2, p3, pFrame);
+	// p1 = {100, p1.y, 255, 0, 0};
+	// p2 = {100, p2.y, 0, 255, 0};
+	// p3 = {100, p3.y, 0, 0, 255};
 	fill_tri(tri, pFrame);
+	//draw_tri(p1, p2, p3, pFrame);
 	sleep(1);
 }
 
