@@ -52,6 +52,9 @@ void OnMouse(int button, int state, int x, int y);
 void OnKeypress(unsigned char key, int x, int y);
 void sort_vertices(struct POINT2D **triangle);
 void draw_line(struct POINT2D p1, struct POINT2D p2, BYTE *fBuffer);
+bool inside(struct POINT2D **tri, struct POINT2D *pt);
+bool same_side(struct POINT2D a, struct POINT2D b, struct POINT2D l1, struct POINT2D l2);
+void fill_poly(struct POINT2D **poly, int vertex_count, BYTE *fBuffer);
 
 ////////////////////////////////////////////////////////
 // Program Entry Poinr
@@ -283,12 +286,45 @@ void clip_line(struct POINT2D p1, struct POINT2D p2, BYTE *fBuffer)
 
 void draw_tri(struct POINT2D p1, struct POINT2D p2, struct POINT2D p3, BYTE *fBuffer)
 {
-	// draw_line(p1, p2, fBuffer);
-	// draw_line(p1, p3, fBuffer);
-	// draw_line(p2, p3, fBuffer);
 	clip_line(p1, p2, fBuffer);
 	clip_line(p1, p3, fBuffer);
 	clip_line(p2, p3, fBuffer);
+}
+
+bool line_position(struct POINT2D a, struct POINT2D b, struct POINT2D c) {
+     return ((b.x - a.x)*(c.y - a.y) - (b.y - a.y)*(c.x - a.x)) > 0;
+}
+
+void draw_poly(struct POINT2D **poly, int vertex_count, BYTE *fBuffer)
+{
+	if (vertex_count == 1) {
+		SetPixel(*(poly[0]), fBuffer);
+		return;
+	}
+	for (int a = 0, b = 1; b < vertex_count; a++, b++) {
+		clip_line(*(poly[a]), *(poly[b]), fBuffer);
+	}
+	clip_line(*(poly[vertex_count - 1]), *(poly[0]), fBuffer);
+}
+
+void fill_poly(struct POINT2D **poly, int vertex_count, BYTE *fBuffer)
+{
+	return; //temp
+}
+
+bool inside(struct POINT2D **tri, struct POINT2D *pt)
+{
+	return same_side(*pt, *(tri[0]), *(tri[1]), *(tri[2]))
+			&& same_side(*pt, *(tri[1]), *(tri[0]), *(tri[2]))
+			&& same_side(*pt, *(tri[2]), *(tri[0]), *(tri[1]));
+}
+
+// Return true if points a and b are on the same side of line l1-l2
+bool same_side(struct POINT2D a, struct POINT2D b, struct POINT2D l1, struct POINT2D l2)
+{
+	int apt = (a.x - l1.x) * (l2.y - l1.y) - (l2.x - l1.x) * (a.y - l1.y);
+	int bpt = (b.x - l1.x) * (l2.y - l1.y) - (l2.x - l1.x) * (b.y - l1.y);
+	return (apt * bpt) > 0;
 }
 
 bool collinear(struct POINT2D **tri)
@@ -420,15 +456,22 @@ void sort_vertices(struct POINT2D **triangle)
 
 void BuildFrame(BYTE *pFrame, int view)
 {
-	struct POINT2D p1 = rand_point();
-	struct POINT2D p2 = rand_point();
-	struct POINT2D p3 = rand_point();
-	struct POINT2D *tri[3] = {&p1, &p2, &p3};
-	p1 = {p1.x, p1.y, p1.r, p1.g, p1.b};
-	p2 = {p2.x, p2.y, p2.r, p2.g, p2.b};
-	p3 = {p3.x, 700, p3.r, p3.g, p3.b};
-	fill_tri(tri, pFrame);
+	//fill_tri(tri, pFrame);
 	//draw_tri(p1, p2, p3, pFrame);
-	sleep(1);
+	struct POINT2D p0 = { 100, 250, 255, 255, 150 };
+	struct POINT2D p1 = { 250, 400, 0,   255, 150 };
+	struct POINT2D p2 = { 400, 300, 255, 255, 150 };
+	struct POINT2D p3 = { 500, 350, 0,   255, 150 };
+	struct POINT2D p4 = { 650, 150, 255, 255, 150 };
+	struct POINT2D p5 = { 500, 200, 0,   255, 150 };
+	struct POINT2D p6 = { 450, 100, 255, 255, 150 };
+	struct POINT2D p7 = { 350, 250, 0,   255, 150 };
+	struct POINT2D p8 = { 200, 200, 255, 255, 150 };
+	struct POINT2D p9 = { 250, 100, 0  , 255, 150 };
+
+	struct POINT2D *tri[3] = {&p1, &p2, &p3};
+	struct POINT2D *poly[10] = {&p0, &p1, &p2, &p3, &p4, &p5, &p6, &p7, &p7, &p9};
+	draw_poly(poly, 10, pFrame);
+	sleep(2);
 }
 
