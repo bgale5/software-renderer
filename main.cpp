@@ -18,9 +18,11 @@
 
 //====== Macros and Defines =========
 
-#define FRAME_WIDE	1000
-#define FRAME_HIGH	600
+#define FRAME_WIDE 1000
+#define FRAME_HIGH 600
 #define ROUND(x) ((int)(x+0.5))
+#define TMIN 0 // For parametric line equations
+#define TMAX 1 // For parametric line equations
 
 //====== Structs & typedefs =========
 typedef unsigned char BYTE;
@@ -230,11 +232,63 @@ void draw_line(struct POINT2D p1, struct POINT2D p2, BYTE *fBuffer)
 	}
 }
 
+bool clip_test(double p, double q, double *u1, double *u2)
+{
+	double r = q / p;
+	if (p < 0.0) { // outside -> inside
+		if (r > *u2)
+			return false;
+		else if (r > *u1)
+			*u1 = r;
+	} else if (p > 0.0) { // inside -> outside
+		if (r < *u1)
+			return false;
+		else if (r < *u2)
+			*u2 = r;
+	} else if (q < 0.0) {
+		return false;
+	}
+	return true;
+}
+
+void clip_line(struct POINT2D p1, struct POINT2D p2, BYTE *fBuffer)
+{
+	double dx = p2.x - p1.x;
+	double dy;
+	double u1 = 0.0;
+	double u2 = 1.0;
+	int min_x = 0;
+	int max_x = FRAME_WIDE - 1;
+	int min_y = 0;
+	int max_y = FRAME_HIGH - 1;
+	if (clip_test(-dx, p1.x - min_x, &u1, &u2)) {
+		if (clip_test(dx, max_x - p1.x, &u1, &u2)) {
+			dy = p2.y - p1.y;
+			if (clip_test(-dy, p1.y - min_y, &u1, &u2)) {
+				if (clip_test(dy, max_y - p1.y, &u1, &u2)) {
+					if (u2 < 1) {
+						p2.x = p1.x + u2 * dx;
+						p2.y = p1.y + u2 * dy;
+					}
+					if (u1 > 0) {
+						p1.x += u1 * dx;
+						p1.y += u1 * dy;
+					}
+					draw_line(p1, p2, fBuffer);
+				}
+			}
+		}
+	}
+}
+
 void draw_tri(struct POINT2D p1, struct POINT2D p2, struct POINT2D p3, BYTE *fBuffer)
 {
-	draw_line(p1, p2, fBuffer);
-	draw_line(p1, p3, fBuffer);
-	draw_line(p2, p3, fBuffer);
+	// draw_line(p1, p2, fBuffer);
+	// draw_line(p1, p3, fBuffer);
+	// draw_line(p2, p3, fBuffer);
+	clip_line(p1, p2, fBuffer);
+	clip_line(p1, p3, fBuffer);
+	clip_line(p2, p3, fBuffer);
 }
 
 bool collinear(struct POINT2D **tri)
@@ -251,24 +305,25 @@ void fill_tri(struct POINT2D **triangle, BYTE *fBuffer)
 {
 	sort_vertices(triangle);
 	if (collinear(triangle)) {
-		draw_line(*(triangle[0]), *(triangle[1]), fBuffer);
-		draw_line(*(triangle[1]), *(triangle[2]), fBuffer);
+		//draw_line(*(triangle[0]), *(triangle[1]), fBuffer);
+		//draw_line(*(triangle[1]), *(triangle[2]), fBuffer);
+		clip_line(*(triangle[0]), *(triangle[1]), fBuffer);
+		clip_line(*(triangle[1]), *(triangle[2]), fBuffer);
 		return;
 	}
 	// Placeholder variables for maintaining current value after truncation
 	double fromx = (double)triangle[0]->x;
-	double tox = (double)triangle[0]->x;
+	double tox   = (double)triangle[0]->x;
 	double fromr = (double)triangle[0]->r;
 	double fromg = (double)triangle[0]->g;
 	double fromb = (double)triangle[0]->b;
-	double tor = (double)triangle[0]->r;
-	double tog = (double)triangle[0]->g;
-	double tob = (double)triangle[0]->b;
+	double tor   = (double)triangle[0]->r;
+	double tog   = (double)triangle[0]->g;
+	double tob   = (double)triangle[0]->b;
 	
 	// Gradients
 	int a, b;
 	if (triangle[0]->y == triangle[1]->y) { // Handle flat-topped triangles
-		printf("It's a flat top\n");
 		a = 2;
 		b = 1;
 		fromx = double(triangle[1]->x);
@@ -318,7 +373,8 @@ void fill_tri(struct POINT2D **triangle, BYTE *fBuffer)
 		tor += to_r_inc;
 		tog += to_g_inc;
 		tob += to_b_inc;
-		draw_line({ROUND(fromx), y, (BYTE)fromr, (BYTE)(fromg), (BYTE)(fromb)}, {ROUND(tox), y, (BYTE)(tor), (BYTE)(tog), (BYTE)(tob)}, fBuffer);
+		//draw_line({ROUND(fromx), y, (BYTE)fromr, (BYTE)(fromg), (BYTE)(fromb)}, {ROUND(tox), y, (BYTE)(tor), (BYTE)(tog), (BYTE)(tob)}, fBuffer);
+		clip_line({ROUND(fromx), y, (BYTE)fromr, (BYTE)(fromg), (BYTE)(fromb)}, {ROUND(tox), y, (BYTE)(tor), (BYTE)(tog), (BYTE)(tob)}, fBuffer);
 	}
 }
 
@@ -368,8 +424,11 @@ void BuildFrame(BYTE *pFrame, int view)
 	struct POINT2D p2 = rand_point();
 	struct POINT2D p3 = rand_point();
 	struct POINT2D *tri[3] = {&p1, &p2, &p3};
+	p1 = {p1.x, p1.y, p1.r, p1.g, p1.b};
+	p2 = {p2.x, p2.y, p2.r, p2.g, p2.b};
+	p3 = {p3.x, 700, p3.r, p3.g, p3.b};
 	fill_tri(tri, pFrame);
-	draw_tri(p1, p2, p3, pFrame);
-	sleep(5);
+	//draw_tri(p1, p2, p3, pFrame);
+	sleep(1);
 }
 
