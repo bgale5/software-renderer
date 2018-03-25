@@ -4,205 +4,7 @@
 #include <ctime>			//- for random seed
 #include <unistd.h>			//- for sleep()
 #include <cstring>
-
-#ifdef _WIN32
-	#include "libs/glut.h"
-	#include <windows.h>
-	#pragma comment(lib, "winmm.lib")			//- not required but have it in anyway
-	#pragma comment(lib, "libs/glut32.lib")
-#elif __APPLE__
-	#include <GLUT/glut.h>
-#elif __unix__		// all unices including  __linux__
-	#include <GL/glut.h>
-#endif
-
-//====== Macros and Defines =========
-
-#define FRAME_WIDE 1000
-#define FRAME_HIGH 600
-#define ROUND(x) ((int)(x+0.5))
-#define TMIN 0 // For parametric line equations
-#define TMAX 1 // For parametric line equations
-
-//====== Structs & typedefs =========
-typedef unsigned char BYTE;
-struct POINT2D {
-	int x, y;
-	BYTE r, g, b;
-};
-
-//====== Global Variables ==========
-BYTE	pFrameL[FRAME_WIDE * FRAME_HIGH * 3];
-BYTE	pFrameR[FRAME_WIDE * FRAME_HIGH * 3];
-int		shade = 0;
-POINT2D	xypos = {0,0};
-int		stereo = 0;
-int		eyes = 10;
-
-//===== Forward Declarations ========
-void ClearScreen();
-void DrawFrame();
-void Interlace(BYTE* pL, BYTE* pR);
-void PlaySoundEffect(char * filename);
-void BuildFrame(BYTE *pFrame, int view);
-void OnIdle(void);
-void OnDisplay(void);
-void reshape(int w, int h);
-void OnMouse(int button, int state, int x, int y);
-void OnKeypress(unsigned char key, int x, int y);
-void sort_vertices(struct POINT2D **triangle);
-void draw_line(struct POINT2D p1, struct POINT2D p2, BYTE *fBuffer);
-bool inside(struct POINT2D **tri, struct POINT2D *pt);
-bool same_side(struct POINT2D a, struct POINT2D b, struct POINT2D l1, struct POINT2D l2);
-void fill_poly(struct POINT2D **poly, int vertex_count, BYTE *fBuffer);
-void fill_tri(struct POINT2D **triangle, BYTE *fBuffer);
-bool line_position(struct POINT2D a, struct POINT2D b, struct POINT2D c);
-bool points_inside(struct POINT2D **tri, struct POINT2D **poly, int vertex_count);
-bool line_position(struct POINT2D a, struct POINT2D b, struct POINT2D c);
-
-////////////////////////////////////////////////////////
-// Program Entry Poinr
-////////////////////////////////////////////////////////
-
-int main(int argc, char** argv)
-{
-	//-- setup GLUT --
-	glutInit(&argc, argv);
-	glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGB);	//GLUT_3_2_CORE_PROFILE |
-	glutInitWindowSize(FRAME_WIDE, FRAME_HIGH);
-	glutInitWindowPosition(100, 100);
-	glutCreateWindow(argv[0]);
-/*
-#ifdef WIN32
-	//- eliminate flashing --
-	typedef void (APIENTRY * PFNWGLEXTSWAPCONTROLPROC) (int i);
-	PFNWGLEXTSWAPCONTROLPROC wglSwapControl = NULL;
-	wglSwapControl = (PFNWGLEXTSWAPCONTROLPROC) wglGetProcAddress("wglSwapIntervalEXT");
-	if (wglSwapControl != NULL) wglSwapControl(1); 
-#endif
-*/
-
-	//--- set openGL state --
-	glClearColor (0.0, 0.0, 0.0, 0.0);
-	glShadeModel(GL_FLAT);
-	glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
-
-	//-- register call back functions --
-	glutIdleFunc(OnIdle);
-	glutDisplayFunc(OnDisplay);
-	glutReshapeFunc(reshape);
-	glutKeyboardFunc(OnKeypress);
-	glutMouseFunc(OnMouse);
-
-	//-- run the program
-	glutMainLoop();
-	return 0;
-}
-
-
-////////////////////////////////////////////////////////
-// Event Handers
-////////////////////////////////////////////////////////
-	  
-void OnIdle(void)
-{
-	DrawFrame();
-	glutPostRedisplay();
-}
-
-void OnDisplay(void)
-{
-    glClear(GL_COLOR_BUFFER_BIT);
-    glPixelZoom( 1, -1 );
-    glRasterPos2i(0, FRAME_HIGH-1);
-    glDrawPixels(FRAME_WIDE, FRAME_HIGH, GL_RGB,GL_UNSIGNED_BYTE, (GLubyte*)pFrameR);
-    glutSwapBuffers();
-    glFlush();
-}
-
-void reshape(int w, int h)
-{
-	glViewport(0, 0, (GLsizei) w, (GLsizei) h);
-	glMatrixMode(GL_PROJECTION);
-	glLoadIdentity();
-	gluOrtho2D(0.0, (GLdouble) w, 0.0, (GLdouble) h);
-	glMatrixMode(GL_MODELVIEW);
-	glLoadIdentity();
-}
-
-
-void OnMouse(int button, int state, int x, int y)
-{
-	if (button == GLUT_LEFT_BUTTON && state == GLUT_UP)
-	{
-		PlaySoundEffect("Laser.wav"); 
-		if (++shade > 16) shade = 0;	
-	}
-}
-
-void OnKeypress(unsigned char key, int x, int y)
-{
-	switch (key) 
-	{ 
-	case ' ': xypos.x = xypos.y = 0; break;
-	case 's': stereo ^= 1, eyes = 10;break;
-	case ']': eyes++;	break;
-	case '[': eyes--;	break;
-	case 27 : exit(0);
-	}
-	PlaySoundEffect("Whoosh.wav"); 
-}
-
-
-////////////////////////////////////////////////////////
-// Utility Functions
-////////////////////////////////////////////////////////
-
-
-void ClearScreen()
-{
-	memset(pFrameL, 0, FRAME_WIDE * FRAME_HIGH * 3);
-	memset(pFrameR, 0, FRAME_WIDE * FRAME_HIGH * 3);
-}
-
-
-void Interlace(BYTE* pL, BYTE* pR)
-{
-	int rowlen = 3 * FRAME_WIDE;
-	for (int y = 0; y < FRAME_HIGH; y+=2)
-	{
-		for (int x = 0; x < rowlen; x++) *pR++ = *pL++;
-		pL += rowlen;
-		pR += rowlen;
-	}
-}
-
-void DrawFrame()
-{
-	ClearScreen();
-	
-	if (!stereo) BuildFrame(pFrameR, 0);
-	else {
-		BuildFrame(pFrameL, -eyes);
-		BuildFrame(pFrameR, +eyes);
-		Interlace((BYTE*)pFrameL, (BYTE*)pFrameR);
-	}
-}
-
-void	PlaySoundEffect(char * filename)		
-{
-#ifdef _WIN32
-	PlaySound(filename, NULL, SND_ASYNC | SND_FILENAME ); 
-#else
-	char command[80];
-	#ifdef __APPLE__
-		sprintf(command, "afplay %s &", filename);
-	#else
-		sprintf(command, "play %s &", filename);
-	#endif	
-	system(command);
-#endif
-}
+#include "engine.hpp"
 
 void SetPixel(struct POINT2D point, BYTE *fBuffer)
 {
@@ -294,9 +96,6 @@ void draw_tri(struct POINT2D p1, struct POINT2D p2, struct POINT2D p3, BYTE *fBu
 	clip_line(p2, p3, fBuffer);
 }
 
-bool line_position(struct POINT2D a, struct POINT2D b, struct POINT2D c) {
-     return ((b.x - a.x) * (c.y - a.y) - (b.y - a.y) * (c.x - a.x)) > 0;
-}
 
 void draw_poly(struct POINT2D **poly, int vertex_count, BYTE *fBuffer)
 {
@@ -327,34 +126,96 @@ int compar(const void *p1, const void *p2) // Used for the quicksort
 	return (*(struct POINT2D **)p1)->x - (*(struct POINT2D **)p2)->x;
 }
 
-struct POINT2D **find_point(struct POINT2D **poly, int vertex_count, struct POINT2D *point)
+void remove_point(struct POINT2D **arr, struct POINT2D **current, int *n)
 {
-	for (int i = 0; i < vertex_count; i++) {
-		if (poly[i] == point)
-			return &poly[i];
+	int index = current - arr;
+	if (current != arr + (*n - 1))
+		memcpy(current, current + 1, sizeof(struct POINT2D*) * (*n - (1 + index)));
+	(*n)--;
+	printf("remove_point() called on %d:(%d, %d)\n", index, arr[index]->x, arr[index]->y);
+}
+
+struct POINT2D **find_point(struct POINT2D **neighbours, int neighbour_count, struct POINT2D *point)
+{
+	for (int i = 0; i < neighbour_count; i++) {
+		if (point == neighbours[i])
+			return neighbours + i;
 	}
 	return NULL;
 }
 
 void fill_poly(struct POINT2D **poly, int vertex_count, BYTE *fBuffer)
 {
-	struct POINT2D **x_ordered = (struct POINT2D **)calloc(vertex_count, sizeof(struct POINT2D *));
-	memcpy(x_ordered, poly, sizeof(struct POINT2D *) * vertex_count);
-	qsort((void *)x_ordered, vertex_count, sizeof(struct POINT2D *), compar);
+	struct POINT2D **neighbours = (struct POINT2D**)calloc(vertex_count, sizeof(struct POINT2D *));
+	int neighbour_count = vertex_count;
+	memcpy(neighbours, poly, sizeof(struct POINT2D*) * vertex_count);
 	for (int i = 0; i < vertex_count; i++) {
-		struct POINT2D **current = find_point(poly, vertex_count, x_ordered[i]);
-		struct POINT2D *tri[3];
-		tri[0] = *current;
-		tri[1] = *(current + 1);
-		tri[2] = *current == poly[0] ? poly[vertex_count - 1] : *(current - 1);
+		for (int j = 0; j < neighbour_count; j++) {
+			printf("%d:(%d, %d), count=%d\n", j, neighbours[j]->x, neighbours[j]->y, neighbour_count);
+		}
+		struct POINT2D **current = find_point(neighbours, neighbour_count, poly[i]);
+		struct POINT2D **prev_adjacent = (*current == neighbours[0]) ? neighbours + neighbour_count - 1 : current - 1; // Wrap to end
+		struct POINT2D **next_adjacent = (*current == neighbours[vertex_count - 1]) ? neighbours : current + 1; // Wrap to start
+		struct POINT2D *tri[3] = {*current, *next_adjacent, *prev_adjacent};
 		if (!points_inside(tri, poly, vertex_count)
-		&& line_position(*tri[1], *tri[2], *tri[0]))
+				&& convex(**current, **prev_adjacent, **next_adjacent)) {
 			//draw_tri(*tri[0], *tri[1], *tri[2], fBuffer);
 			fill_tri(tri, fBuffer);
-			
+			remove_point(neighbours, current, &neighbour_count);
+			printf("remove_point() called on %d:(%d, %d)\n", i, (*current)->x, (*current)->y);
+		}
 	}
-	free(x_ordered);
-	x_ordered = NULL;
+	free(neighbours);
+	neighbours = NULL;
+}
+
+// Test to see if p0 is on the left/right side of p2 --> p1 edge.
+bool convex(POINT2D p2, POINT2D p1, POINT2D p0)
+{
+    return ((p2.x - p1.x) * (p0.y - p1.y) - (p2.y - p1.y) * (p0.x - p1.x)) < 0;
+}
+
+void test_points_inside(BYTE *pFrame)
+{
+	struct POINT2D t1 = rand_point();
+	struct POINT2D t2 = rand_point();
+	struct POINT2D t3 = rand_point();
+	struct POINT2D p  = rand_point();
+	struct POINT2D *tri[3] = {&t1, &t2, &t3};
+	//t1 = {100, 100, 255, 255, 255};
+	//t2 = {200, 110, 255, 255, 255};
+	//t3 = {200, 200, 255, 255, 255};
+	p = {p.x, p.y, (BYTE)0, (BYTE)0, (BYTE)0}; //inside
+	if (inside(tri, &p))
+		p.g = (BYTE)255;
+	else
+		p.r = (BYTE)255;
+	draw_tri(t1, t2, t3, pFrame);
+	printf("(%d, %d): %d\n", p.x, p.y, inside(tri, &p));
+	SetPixel(p, pFrame);
+}
+
+void test_same_side(BYTE *pFrame)
+{
+	struct POINT2D l1 = rand_point();
+	struct POINT2D l2 = rand_point();
+	struct POINT2D p1 = rand_point();
+	struct POINT2D p2 = rand_point();
+	p1 = {p1.x, p1.y, 0, 0, 0};
+	p2 = {p2.x, p2.y, 0, 0, 0};
+	if (same_side(p1, p2, l1, l2)) {
+		p1.g = (BYTE)255;
+		p2.g = (BYTE)255;
+	} else {
+		p1.r = (BYTE)255;
+		p2.r = (BYTE)255;
+	}
+	clip_line(l1, l2, pFrame);
+	SetPixel(p1, pFrame);
+	SetPixel(p2, pFrame);
+	printf("p1(%d, %d), p2(%d, %d), l1(%d, %d), l2(%d, %d)\n",
+			p1.x, p1.y, p2.x, p2.y, l1.x, l1.y, l2.x, l2.y);
+	printf(same_side(p1, p2, l1, l2) ? " green\n" : " red\n");
 }
 
 bool points_inside(struct POINT2D **tri, struct POINT2D **poly, int vertex_count)
@@ -368,17 +229,19 @@ bool points_inside(struct POINT2D **tri, struct POINT2D **poly, int vertex_count
 
 bool inside(struct POINT2D **tri, struct POINT2D *pt)
 {
-	return same_side(*pt, *(tri[0]), *(tri[1]), *(tri[2]))
-			&& same_side(*pt, *(tri[1]), *(tri[0]), *(tri[2]))
-			&& same_side(*pt, *(tri[2]), *(tri[0]), *(tri[1]));
+	return same_side(*pt, *tri[0], *tri[1], *tri[2])
+			&& same_side(*pt, *tri[1], *tri[0], *tri[2])
+			&& same_side(*pt, *tri[2], *tri[0], *tri[1]);
 }
 
 // Return true if points a and b are on the same side of line l1-l2
 bool same_side(struct POINT2D a, struct POINT2D b, struct POINT2D l1, struct POINT2D l2)
 {
-	int apt = (a.x - l1.x) * (l2.y - l1.y) - (l2.x - l1.x) * (a.y - l1.y);
-	int bpt = (b.x - l1.x) * (l2.y - l1.y) - (l2.x - l1.x) * (b.y - l1.y);
-	return (apt * bpt) > 0;
+	// l1 and l2 are the ends of the line
+	// returns true if a & b are on the same side of line
+	double apt = (a.x - l1.x) * (l2.y - l1.y) - (l2.x - l1.x) * (a.y - l1.y);
+	double bpt = (b.x - l1.x) * (l2.y - l1.y) - (l2.x - l1.x) * (b.y - l1.y);
+	return ((apt * bpt) > 0);
 }
 
 bool collinear(struct POINT2D **tri)
@@ -502,34 +365,3 @@ void sort_vertices(struct POINT2D **triangle)
 		triangle[2] = temp;
 	}
 }
-
-
-////////////////////////////////////////////////////////
-// Drawing Funcion
-////////////////////////////////////////////////////////
-
-void BuildFrame(BYTE *pFrame, int view)
-{
-	struct POINT2D p0 = { 100, 250, 255, 255, 150 };
-	struct POINT2D p1 = { 250, 400, 0,   255, 150 };
-	struct POINT2D p2 = { 400, 300, 255, 255, 150 };
-	struct POINT2D p3 = { 500, 350, 0,   255, 150 };
-	struct POINT2D p4 = { 650, 150, 255, 255, 150 };
-	struct POINT2D p5 = { 500, 200, 0,   255, 150 };
-	struct POINT2D p6 = { 450, 100, 255, 255, 150 };
-	struct POINT2D p7 = { 350, 250, 0,   255, 150 };
-	struct POINT2D p8 = { 200, 200, 255, 255, 150 };
-	struct POINT2D p9 = { 250, 100, 0  , 255, 150 };
-	struct POINT2D *poly[10] = {&p0, &p1, &p2, &p3, &p4, &p5, &p6, &p7, &p8, &p9};
-	//fill_poly(poly, 10, pFrame);
-	//draw_poly(poly, 10, pFrame);
-	//draw_tri(p5, p6, p7, pFrame);
-	struct POINT2D pa = { rand() % FRAME_WIDE, rand() % FRAME_HIGH, (BYTE)(rand() % 255), (BYTE)(rand() % 255), (BYTE)(rand() % 255) };
-	struct POINT2D pb = { rand() % FRAME_WIDE, rand() % FRAME_HIGH, (BYTE)(rand() % 255), (BYTE)(rand() % 255), (BYTE)(rand() % 255) };
-	struct POINT2D pc = { 1200, 800, 255, 255, 150 };
-	struct POINT2D *tri[3] = {&pa, &pb, &pc};
-	//fill_tri(tri, pFrame);
-	clip_line(pa, pc, pFrame);
-	sleep(1);
-}
-
