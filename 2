@@ -198,17 +198,16 @@ void BuildFrame(BYTE *pFrame, int view)
 	//struct POINT2D p8 = {200, 200, 255, 255, 255};
 	//struct POINT2D p9 = {250, 100, 255, 255, 255};
 	//struct POINT2D *poly[10] = {&p0, &p1, &p2, &p3, &p4, &p5, &p6, &p7, &p8, &p9};
-	//fill_poly(poly, 10, pFrame);
+	fill_poly(poly, 10, pFrame);
 	
-	struct POINT2D p0 = {100, 200, (BYTE)(rand() % 255), (BYTE)(rand() % 255), (BYTE)(rand() % 255)};
-	struct POINT2D p1 = {200, 300, (BYTE)(rand() % 255), (BYTE)(rand() % 255), (BYTE)(rand() % 255)};
-	struct POINT2D p2 = {100, 400, (BYTE)(rand() % 255), (BYTE)(rand() % 255), (BYTE)(rand() % 255)};
-	struct POINT2D p3 = {300, 500, (BYTE)(rand() % 255), (BYTE)(rand() % 255), (BYTE)(rand() % 255)};
-	struct POINT2D p4 = {600, 400, (BYTE)(rand() % 255), (BYTE)(rand() % 255), (BYTE)(rand() % 255)};
-	struct POINT2D p5 = {500, 300, (BYTE)(rand() % 255), (BYTE)(rand() % 255), (BYTE)(rand() % 255)};
-	struct POINT2D p6 = {600, 200, (BYTE)(rand() % 255), (BYTE)(rand() % 255), (BYTE)(rand() % 255)};
-	struct POINT2D p7 = {300, 100, (BYTE)(rand() % 255), (BYTE)(rand() % 255), (BYTE)(rand() % 255)};
-	struct POINT2D *poly[8] = {&p0, &p1, &p2, &p3, &p4, &p5, &p6, &p7};
-	fill_poly(poly, 8, pFrame);
+	//struct POINT2D p0 = {0, 500, 255, 255, 255};
+	//struct POINT2D p1 = {800, 500, 255, 255, 255};
+	//struct POINT2D p2 = {800, 0, 255, 255, 255};
+	//struct POINT2D p3 = {500, 200, 255, 255, 255};
+	//struct POINT2D p4 = {100, 100, 255, 255, 255};
+	//struct POINT2D p5 = {400, 300, 255, 255, 255};
+	//struct POINT2D *poly[6] = {&p0, &p1, &p2, &p3, &p4, &p5};
+	//fill_poly(poly, 6, pFrame);
+	//draw_poly(poly, 6, pFrame);
 	sleep(1);
 }

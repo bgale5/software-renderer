@@ -163,7 +163,7 @@ void fill_poly(struct POINT2D **poly, int vertex_count, BYTE *fBuffer)
 					(*next_adjacent)->y,
 					(*prev_adjacent)->x,
 					(*prev_adjacent)->y);
-			draw_tri(*tri[0], *tri[1], *tri[2], fBuffer);
+			//draw_tri(*tri[0], *tri[1], *tri[2], fBuffer);
 			fill_tri(tri, fBuffer);
 			printf("%d: Removing node: (%d, %d) from neighbours\n", i, (*current)->x, (*current)->y);
 			remove_point(neighbours, current, &neighbour_count);
@@ -175,6 +175,8 @@ void fill_poly(struct POINT2D **poly, int vertex_count, BYTE *fBuffer)
 			printf("%d: (%d, %d)\n", j, neighbours[j]->x, neighbours[j]->y);
 		}
 	}
+	//if (neighbour_count >= 3) // fixes missing triangle on the big complex poly
+	//	fill_poly(neighbours, neighbour_count, fBuffer);
 	free(neighbours);
 	neighbours = NULL;
 }
