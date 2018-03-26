@@ -187,11 +187,11 @@ void	PlaySoundEffect(char * filename)
 
 void BuildFrame(BYTE *pFrame, int view)
 {
-	struct POINT2D p0 = {100, 250, 255, 255, 255};
-	struct POINT2D p1 = {250, 400, 255, 255, 255};
-	struct POINT2D p2 = {400, 300, 255, 255, 255};
-	struct POINT2D p3 = {500, 350, 255, 255, 255};
-	struct POINT2D p4 = {650, 150, 255, 255, 255};
+	struct POINT2D p0 = {100, 250, 255, 0, 0};
+	struct POINT2D p1 = {250, 400, 0, 255, 0};
+	struct POINT2D p2 = {400, 300, 0, 0, 255};
+	struct POINT2D p3 = {500, 350, 100, 100, 100};
+	struct POINT2D p4 = {650, 150, 200, 200, 200};
 	struct POINT2D p5 = {500, 200, 255, 255, 255};
 	struct POINT2D p6 = {450, 100, 255, 255, 255};
 	struct POINT2D p7 = {350, 250, 255, 255, 255};

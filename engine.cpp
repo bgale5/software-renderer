@@ -132,7 +132,6 @@ void remove_point(struct POINT2D **arr, struct POINT2D **current, int *n)
 	if (current != arr + (*n - 1))
 		memcpy(current, current + 1, sizeof(struct POINT2D*) * (*n - (1 + index)));
 	(*n)--;
-	printf("remove_point() called on %d:(%d, %d)\n", index, arr[index]->x, arr[index]->y);
 }
 
 struct POINT2D **find_point(struct POINT2D **neighbours, int neighbour_count, struct POINT2D *point)
@@ -150,19 +149,30 @@ void fill_poly(struct POINT2D **poly, int vertex_count, BYTE *fBuffer)
 	int neighbour_count = vertex_count;
 	memcpy(neighbours, poly, sizeof(struct POINT2D*) * vertex_count);
 	for (int i = 0; i < vertex_count; i++) {
-		for (int j = 0; j < neighbour_count; j++) {
-			printf("%d:(%d, %d), count=%d\n", j, neighbours[j]->x, neighbours[j]->y, neighbour_count);
-		}
 		struct POINT2D **current = find_point(neighbours, neighbour_count, poly[i]);
 		struct POINT2D **prev_adjacent = (*current == neighbours[0]) ? neighbours + neighbour_count - 1 : current - 1; // Wrap to end
 		struct POINT2D **next_adjacent = (*current == neighbours[vertex_count - 1]) ? neighbours : current + 1; // Wrap to start
 		struct POINT2D *tri[3] = {*current, *next_adjacent, *prev_adjacent};
+		printf("%d: Current = (%d, %d)\n", i, (*current)->x, (*current)->y);
 		if (!points_inside(tri, poly, vertex_count)
 				&& convex(**current, **prev_adjacent, **next_adjacent)) {
-			//draw_tri(*tri[0], *tri[1], *tri[2], fBuffer);
+			printf("%d: Drawing tri (%d, %d), (%d, %d), (%d, %d)\n",
+					i, (*current)->x,
+					(*current)->y,
+					(*next_adjacent)->x,
+					(*next_adjacent)->y,
+					(*prev_adjacent)->x,
+					(*prev_adjacent)->y);
+			draw_tri(*tri[0], *tri[1], *tri[2], fBuffer);
 			fill_tri(tri, fBuffer);
+			printf("%d: Removing node: (%d, %d) from neighbours\n", i, (*current)->x, (*current)->y);
 			remove_point(neighbours, current, &neighbour_count);
-			printf("remove_point() called on %d:(%d, %d)\n", i, (*current)->x, (*current)->y);
+		} else {
+			printf("%d: Not drawing: inside=%d, concave=%d\n", i, points_inside(tri, poly, vertex_count), !convex(**current, **prev_adjacent, **next_adjacent));
+		}
+		printf("%d: Neighbours:\n", i);
+		for (int j = 0; j < neighbour_count; j++) {
+			printf("%d: (%d, %d)\n", j, neighbours[j]->x, neighbours[j]->y);
 		}
 	}
 	free(neighbours);
