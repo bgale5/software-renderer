@@ -6,14 +6,55 @@
 #include <cstring>
 #include "engine.hpp"
 
-void SetPixel(struct POINT2D point, BYTE *fBuffer)
+
+/*==================== Data Structure Initialisation and Cleanup ==================== */
+
+/*======================= Drawing Functions ================================= */
+void SetPixel(struct point_2d point, BYTE *fBuffer)
 {
+	if (point.x < 0 || point.x > FRAME_WIDE || point.y < 0 || point.y > FRAME_HIGH) {
+		printf("Point falls out of bounds!\n");
+		return;
+	}
 	fBuffer[3 * (point.y * FRAME_WIDE + point.x)] = point.r; // R
 	fBuffer[3 * (point.y * FRAME_WIDE + point.x) + 1] = point.g; // G
 	fBuffer[3 * (point.y * FRAME_WIDE + point.x) + 2] = point.b; // B
 }
 
-void draw_line(struct POINT2D p1, struct POINT2D p2, BYTE *fBuffer)
+void SetPixel3D(struct point_3d p, BYTE *fBuffer)
+{
+	struct point_2d point = {(int)(p.x * PERSPECTIVE / (double)(p.z + PERSPECTIVE)),
+				(int)(p.y * PERSPECTIVE / (double)(p.z + PERSPECTIVE)),
+				p.r, p.g, p.b};
+	SetPixel(point, fBuffer);
+}
+
+struct point_2d project_point(struct point_3d p3d)
+{
+	struct point_2d p2d = {
+		(int)(p3d.x * PERSPECTIVE / (double)(p3d.z + PERSPECTIVE)),
+		(int)(p3d.y * PERSPECTIVE / (double)(p3d.z + PERSPECTIVE)),
+		p3d.r,
+		p3d.g,
+		p3d.b
+	};
+	return p2d;
+}
+
+void project_polygon(struct object *obj, struct polygon_2d *p2d)
+{
+	for (int i = 0; i < obj->poly_count; i++) { // For every polygon in the object...
+		struct polygon_3d *current_poly = &(obj->object_polys[i]);
+		struct polygon_2d projected_poly;
+		projected_poly.vertex_count = current_poly->vertex_count;
+		for (int j = 0; j < current_poly->vertex_count; j++) { // For every point in the current polygon
+			projected_poly.points[j] = project_point(obj->object_points[current_poly->vertices[j]]);
+		}
+		p2d[i] = projected_poly;
+	}
+}
+
+void draw_line(struct point_2d p1, struct point_2d p2, BYTE *fBuffer)
 {
 	double x = (double)(p1.x);
 	double y = (double)(p1.y);
@@ -59,7 +100,7 @@ bool clip_test(double p, double q, double *u1, double *u2)
 	return true;
 }
 
-void clip_line(struct POINT2D p1, struct POINT2D p2, BYTE *fBuffer)
+void clip_line(struct point_2d p1, struct point_2d p2, BYTE *fBuffer)
 {
 	double dx = p2.x - p1.x;
 	double dy;
@@ -89,7 +130,7 @@ void clip_line(struct POINT2D p1, struct POINT2D p2, BYTE *fBuffer)
 	}
 }
 
-void draw_tri(struct POINT2D p1, struct POINT2D p2, struct POINT2D p3, BYTE *fBuffer)
+void draw_tri(struct point_2d p1, struct point_2d p2, struct point_2d p3, BYTE *fBuffer)
 {
 	clip_line(p1, p2, fBuffer);
 	clip_line(p1, p3, fBuffer);
@@ -97,7 +138,7 @@ void draw_tri(struct POINT2D p1, struct POINT2D p2, struct POINT2D p3, BYTE *fBu
 }
 
 
-void draw_poly(struct POINT2D **poly, int vertex_count, BYTE *fBuffer)
+void draw_poly(struct point_2d **poly, int vertex_count, BYTE *fBuffer)
 {
 	if (vertex_count == 1) {
 		SetPixel(*(poly[0]), fBuffer);
@@ -109,9 +150,17 @@ void draw_poly(struct POINT2D **poly, int vertex_count, BYTE *fBuffer)
 	clip_line(*(poly[vertex_count - 1]), *(poly[0]), fBuffer);
 }
 
-struct POINT2D *x_min(struct POINT2D **arr, int len)
+void draw_object_3d(struct object *obj, BYTE *fBuffer)
 {
-	struct POINT2D *min = arr[0];
+	for (int i = 0; i < obj->poly_count; i++) {
+		struct polygon_3d poly = obj->object_polys[i];
+		
+	}
+}
+
+struct point_2d *x_min(struct point_2d **arr, int len)
+{
+	struct point_2d *min = arr[0];
 	if (len == 1)
 		return min;
 	for (int i = 1; i < len; i++) {
@@ -123,18 +172,18 @@ struct POINT2D *x_min(struct POINT2D **arr, int len)
 
 int compar(const void *p1, const void *p2) // Used for the quicksort
 {
-	return (*(struct POINT2D **)p1)->x - (*(struct POINT2D **)p2)->x;
+	return (*(struct point_2d **)p1)->x - (*(struct point_2d **)p2)->x;
 }
 
-void remove_point(struct POINT2D **arr, struct POINT2D **current, int *n)
+void remove_point(struct point_2d **arr, struct point_2d **current, int *n)
 {
 	int index = current - arr;
 	if (current != arr + (*n - 1))
-		memcpy(current, current + 1, sizeof(struct POINT2D*) * (*n - (1 + index)));
+		memcpy(current, current + 1, sizeof(struct point_2d*) * (*n - (1 + index)));
 	(*n)--;
 }
 
-struct POINT2D **find_point(struct POINT2D **neighbours, int neighbour_count, struct POINT2D *point)
+struct point_2d **find_point(struct point_2d **neighbours, int neighbour_count, struct point_2d *point)
 {
 	for (int i = 0; i < neighbour_count; i++) {
 		if (point == neighbours[i])
@@ -143,94 +192,35 @@ struct POINT2D **find_point(struct POINT2D **neighbours, int neighbour_count, st
 	return NULL;
 }
 
-void fill_poly(struct POINT2D **poly, int vertex_count, BYTE *fBuffer)
+void fill_poly(struct point_2d **poly, int vertex_count, BYTE *fBuffer)
 {
-	struct POINT2D **neighbours = (struct POINT2D**)calloc(vertex_count, sizeof(struct POINT2D *));
+	struct point_2d **neighbours = (struct point_2d**)calloc(vertex_count, sizeof(struct point_2d *));
 	int neighbour_count = vertex_count;
-	memcpy(neighbours, poly, sizeof(struct POINT2D*) * vertex_count);
+	memcpy(neighbours, poly, sizeof(struct point_2d*) * vertex_count);
 	for (int i = 0; i < vertex_count; i++) {
-		struct POINT2D **current = find_point(neighbours, neighbour_count, poly[i]);
-		struct POINT2D **prev_adjacent = (*current == neighbours[0]) ? neighbours + neighbour_count - 1 : current - 1; // Wrap to end
-		struct POINT2D **next_adjacent = (*current == neighbours[vertex_count - 1]) ? neighbours : current + 1; // Wrap to start
-		struct POINT2D *tri[3] = {*current, *next_adjacent, *prev_adjacent};
-		printf("%d: Current = (%d, %d)\n", i, (*current)->x, (*current)->y);
+		struct point_2d **current = find_point(neighbours, neighbour_count, poly[i]);
+		struct point_2d **prev_adjacent = (*current == neighbours[0]) ? neighbours + neighbour_count - 1 : current - 1; // Wrap to end
+		struct point_2d **next_adjacent = (*current == neighbours[vertex_count - 1]) ? neighbours : current + 1; // Wrap to start
+		struct point_2d *tri[3] = {*current, *next_adjacent, *prev_adjacent};
 		if (!points_inside(tri, poly, vertex_count)
 				&& convex(**current, **prev_adjacent, **next_adjacent)) {
-			printf("%d: Drawing tri (%d, %d), (%d, %d), (%d, %d)\n",
-					i, (*current)->x,
-					(*current)->y,
-					(*next_adjacent)->x,
-					(*next_adjacent)->y,
-					(*prev_adjacent)->x,
-					(*prev_adjacent)->y);
-			//draw_tri(*tri[0], *tri[1], *tri[2], fBuffer);
 			fill_tri(tri, fBuffer);
-			printf("%d: Removing node: (%d, %d) from neighbours\n", i, (*current)->x, (*current)->y);
 			remove_point(neighbours, current, &neighbour_count);
-		} else {
-			printf("%d: Not drawing: inside=%d, concave=%d\n", i, points_inside(tri, poly, vertex_count), !convex(**current, **prev_adjacent, **next_adjacent));
-		}
-		printf("%d: Neighbours:\n", i);
-		for (int j = 0; j < neighbour_count; j++) {
-			printf("%d: (%d, %d)\n", j, neighbours[j]->x, neighbours[j]->y);
 		}
 	}
-	//if (neighbour_count >= 3) // fixes missing triangle on the big complex poly
-	//	fill_poly(neighbours, neighbour_count, fBuffer);
+	if (neighbour_count >= 3) // fixes missing triangle on the big complex poly
+		fill_poly(neighbours, neighbour_count, fBuffer);
 	free(neighbours);
 	neighbours = NULL;
 }
 
 // Test to see if p0 is on the left/right side of p2 --> p1 edge.
-bool convex(POINT2D p2, POINT2D p1, POINT2D p0)
+bool convex(point_2d p2, point_2d p1, point_2d p0)
 {
     return ((p2.x - p1.x) * (p0.y - p1.y) - (p2.y - p1.y) * (p0.x - p1.x)) < 0;
 }
 
-void test_points_inside(BYTE *pFrame)
-{
-	struct POINT2D t1 = rand_point();
-	struct POINT2D t2 = rand_point();
-	struct POINT2D t3 = rand_point();
-	struct POINT2D p  = rand_point();
-	struct POINT2D *tri[3] = {&t1, &t2, &t3};
-	//t1 = {100, 100, 255, 255, 255};
-	//t2 = {200, 110, 255, 255, 255};
-	//t3 = {200, 200, 255, 255, 255};
-	p = {p.x, p.y, (BYTE)0, (BYTE)0, (BYTE)0}; //inside
-	if (inside(tri, &p))
-		p.g = (BYTE)255;
-	else
-		p.r = (BYTE)255;
-	draw_tri(t1, t2, t3, pFrame);
-	printf("(%d, %d): %d\n", p.x, p.y, inside(tri, &p));
-	SetPixel(p, pFrame);
-}
-
-void test_same_side(BYTE *pFrame)
-{
-	struct POINT2D l1 = rand_point();
-	struct POINT2D l2 = rand_point();
-	struct POINT2D p1 = rand_point();
-	struct POINT2D p2 = rand_point();
-	p1 = {p1.x, p1.y, 0, 0, 0};
-	p2 = {p2.x, p2.y, 0, 0, 0};
-	if (same_side(p1, p2, l1, l2)) {
-		p1.g = (BYTE)255;
-		p2.g = (BYTE)255;
-	} else {
-		p1.r = (BYTE)255;
-		p2.r = (BYTE)255;
-	}
-	clip_line(l1, l2, pFrame);
-	SetPixel(p1, pFrame);
-	SetPixel(p2, pFrame);
-	printf("p1(%d, %d), p2(%d, %d), l1(%d, %d), l2(%d, %d)\n",
-			p1.x, p1.y, p2.x, p2.y, l1.x, l1.y, l2.x, l2.y);
-	printf(same_side(p1, p2, l1, l2) ? " green\n" : " red\n");
-}
-
-bool points_inside(struct POINT2D **tri, struct POINT2D **poly, int vertex_count)
+bool points_inside(struct point_2d **tri, struct point_2d **poly, int vertex_count)
 {
 	for (int i = 0; i < vertex_count; i++) {
 		if (inside(tri, poly[i]))
@@ -239,7 +229,7 @@ bool points_inside(struct POINT2D **tri, struct POINT2D **poly, int vertex_count
 	return false;
 }
 
-bool inside(struct POINT2D **tri, struct POINT2D *pt)
+bool inside(struct point_2d **tri, struct point_2d *pt)
 {
 	return same_side(*pt, *tri[0], *tri[1], *tri[2])
 			&& same_side(*pt, *tri[1], *tri[0], *tri[2])
@@ -247,7 +237,7 @@ bool inside(struct POINT2D **tri, struct POINT2D *pt)
 }
 
 // Return true if points a and b are on the same side of line l1-l2
-bool same_side(struct POINT2D a, struct POINT2D b, struct POINT2D l1, struct POINT2D l2)
+bool same_side(struct point_2d a, struct point_2d b, struct point_2d l1, struct point_2d l2)
 {
 	// l1 and l2 are the ends of the line
 	// returns true if a & b are on the same side of line
@@ -256,7 +246,7 @@ bool same_side(struct POINT2D a, struct POINT2D b, struct POINT2D l1, struct POI
 	return ((apt * bpt) > 0);
 }
 
-bool collinear(struct POINT2D **tri)
+bool collinear(struct point_2d **tri)
 {
 	double grad = (double)(tri[1]->y - tri[0]->y) / (double)(tri[1]->x - tri[0]->x);
 	if ((double)(tri[2]->y - tri[1]->y) / (double)(tri[2]->x - tri[1]->x) != grad)
@@ -266,7 +256,7 @@ bool collinear(struct POINT2D **tri)
 	return true;
 }
 
-void fill_tri(struct POINT2D **triangle, BYTE *fBuffer)
+void fill_tri(struct point_2d **triangle, BYTE *fBuffer)
 {
 	sort_vertices(triangle);
 	if (collinear(triangle)) {
@@ -343,9 +333,9 @@ void fill_tri(struct POINT2D **triangle, BYTE *fBuffer)
 	}
 }
 
-struct POINT2D rand_point()
+struct point_2d rand_point()
 {
-	struct POINT2D point;
+	struct point_2d point;
 	point.x = rand() % FRAME_WIDE;
 	point.y = rand() % FRAME_HIGH;
 	point.r = (BYTE)(rand() % 255);
@@ -358,9 +348,9 @@ struct POINT2D rand_point()
  * Finds sorts the points in order of y value
  * So that top, middle, and bottom can be identified
  */
-void sort_vertices(struct POINT2D **triangle)
+void sort_vertices(struct point_2d **triangle)
 {
-	struct POINT2D *temp = NULL;
+	struct point_2d *temp = NULL;
 	if (triangle[0]->y > triangle[2]->y) {
 		temp = triangle[0];
 		triangle[0] = triangle[2];

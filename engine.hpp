@@ -8,28 +8,59 @@
 #define ROUND(x) ((int)(x+0.5))
 #define TMIN 0 // For parametric line equations
 #define TMAX 1 // For parametric line equations
+#define PERSPECTIVE 500
+#define MaxNumObjs 20
+#define MaxNumPts 600
+#define MaxNumPolys 900
+#define NumSidesPoly 4
 
 //====== Structs & typedefs =========
 typedef unsigned char BYTE;
-struct POINT2D {
+struct point_2d {
 	int x, y;
 	BYTE r, g, b;
 };
+struct point_3d {
+	int x, y, z;
+	BYTE r, g, b;
+};
 
-//====== Forward Declaration s=========
-void sort_vertices(struct POINT2D **triangle);
-void draw_line(struct POINT2D p1, struct POINT2D p2, BYTE *fBuffer);
-bool inside(struct POINT2D **tri, struct POINT2D *pt);
-bool same_side(struct POINT2D a, struct POINT2D b, struct POINT2D l1, struct POINT2D l2);
-void fill_poly(struct POINT2D **poly, int vertex_count, BYTE *fBuffer);
-void fill_tri(struct POINT2D **triangle, BYTE *fBuffer);
-bool concave(struct POINT2D a, struct POINT2D b, struct POINT2D c);
-bool points_inside(struct POINT2D **tri, struct POINT2D **poly, int vertex_count);
-void clip_line(struct POINT2D p1, struct POINT2D p2, BYTE *fBuffer);
-void test_points_inside(BYTE *pFrame);
-struct POINT2D rand_point();
-void test_same_side(BYTE *pFrame);
-void draw_poly(struct POINT2D **poly, int vertex_count, BYTE *fBuffer);
-bool convex(POINT2D p2, POINT2D p1, POINT2D p0);
+struct polygon_2d {
+	struct point_2d points[NumSidesPoly];
+	int vertex_count;
+};
+
+struct polygon_3d {
+	int vertices[NumSidesPoly]; // Indices/offsets for vertices in the VJS array
+	int vertex_count;
+};
+
+struct object_attribs {
+	struct point_3d center, scale;
+};
+
+struct object {
+	struct object_attribs properties;
+	int vertex_count, poly_count;
+	struct polygon_3d object_polys[MaxNumPolys];
+	struct point_3d object_points[MaxNumPts];
+};
+
+//====== Forward Declarations=========
+void sort_vertices(struct point_2d **triangle);
+void draw_line(struct point_2d p1, struct point_2d p2, BYTE *fBuffer);
+bool inside(struct point_2d **tri, struct point_2d *pt);
+bool same_side(struct point_2d a, struct point_2d b, struct point_2d l1, struct point_2d l2);
+void fill_poly(struct point_2d **poly, int vertex_count, BYTE *fBuffer);
+void fill_tri(struct point_2d **triangle, BYTE *fBuffer);
+bool concave(struct point_2d a, struct point_2d b, struct point_2d c);
+bool points_inside(struct point_2d **tri, struct point_2d **poly, int vertex_count);
+void clip_line(struct point_2d p1, struct point_2d p2, BYTE *fBuffer);
+struct point_2d rand_point();
+void draw_poly(struct point_2d **poly, int vertex_count, BYTE *fBuffer);
+bool convex(point_2d p2, point_2d p1, point_2d p0);
+void SetPixel3D(struct point_3d point, BYTE *fBuffer);
+void draw_3d_object(struct object *obj, BYTE *fBuffer);
+struct point_2d project_point(struct point_3d p3d);
 
 #endif

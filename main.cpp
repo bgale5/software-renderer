@@ -21,7 +21,7 @@
 BYTE	pFrameL[FRAME_WIDE * FRAME_HIGH * 3];
 BYTE	pFrameR[FRAME_WIDE * FRAME_HIGH * 3];
 int		shade = 0;
-POINT2D	xypos = {0,0};
+point_2d	xypos = {0,0};
 int		stereo = 0;
 int		eyes = 10;
 
@@ -187,28 +187,74 @@ void	PlaySoundEffect(char * filename)
 
 void BuildFrame(BYTE *pFrame, int view)
 {
-	//struct POINT2D p0 = {100, 250, 255, 0, 0};
-	//struct POINT2D p1 = {250, 400, 0, 255, 0};
-	//struct POINT2D p2 = {400, 300, 0, 0, 255};
-	//struct POINT2D p3 = {500, 350, 100, 100, 100};
-	//struct POINT2D p4 = {650, 150, 200, 200, 200};
-	//struct POINT2D p5 = {500, 200, 255, 255, 255};
-	//struct POINT2D p6 = {450, 100, 255, 255, 255};
-	//struct POINT2D p7 = {350, 250, 255, 255, 255};
-	//struct POINT2D p8 = {200, 200, 255, 255, 255};
-	//struct POINT2D p9 = {250, 100, 255, 255, 255};
-	//struct POINT2D *poly[10] = {&p0, &p1, &p2, &p3, &p4, &p5, &p6, &p7, &p8, &p9};
+	//struct point_2d p0 = {100, 250, 255, 0, 0};
+	//struct point_2d p1 = {250, 400, 0, 255, 0};
+	//struct point_2d p2 = {400, 300, 0, 0, 255};
+	//struct point_2d p3 = {500, 350, 100, 100, 100};
+	//struct point_2d p4 = {650, 150, 200, 200, 200};
+	//struct point_2d p5 = {500, 200, 255, 255, 255};
+	//struct point_2d p6 = {450, 100, 255, 255, 255};
+	//struct point_2d p7 = {350, 250, 255, 255, 255};
+	//struct point_2d p8 = {200, 200, 255, 255, 255};
+	//struct point_2d p9 = {250, 100, 255, 255, 255};
+	//struct point_2d *poly[10] = {&p0, &p1, &p2, &p3, &p4, &p5, &p6, &p7, &p8, &p9};
 	//fill_poly(poly, 10, pFrame);
 	
-	struct POINT2D p0 = {100, 200, (BYTE)(rand() % 255), (BYTE)(rand() % 255), (BYTE)(rand() % 255)};
-	struct POINT2D p1 = {200, 300, (BYTE)(rand() % 255), (BYTE)(rand() % 255), (BYTE)(rand() % 255)};
-	struct POINT2D p2 = {100, 400, (BYTE)(rand() % 255), (BYTE)(rand() % 255), (BYTE)(rand() % 255)};
-	struct POINT2D p3 = {300, 500, (BYTE)(rand() % 255), (BYTE)(rand() % 255), (BYTE)(rand() % 255)};
-	struct POINT2D p4 = {600, 400, (BYTE)(rand() % 255), (BYTE)(rand() % 255), (BYTE)(rand() % 255)};
-	struct POINT2D p5 = {500, 300, (BYTE)(rand() % 255), (BYTE)(rand() % 255), (BYTE)(rand() % 255)};
-	struct POINT2D p6 = {600, 200, (BYTE)(rand() % 255), (BYTE)(rand() % 255), (BYTE)(rand() % 255)};
-	struct POINT2D p7 = {300, 100, (BYTE)(rand() % 255), (BYTE)(rand() % 255), (BYTE)(rand() % 255)};
-	struct POINT2D *poly[8] = {&p0, &p1, &p2, &p3, &p4, &p5, &p6, &p7};
-	fill_poly(poly, 8, pFrame);
+	struct polygon p0;
+	struct polygon p1;
+	struct polygon p2;
+	struct polygon p3;
+	struct polygon p4;
+	struct polygon p5;
+	//p0.vertices = {3, 2, 1, 0};
+	p0.vertices[0] = 3;
+	p0.vertices[1] = 2;
+	p0.vertices[2] = 1;
+	p0.vertices[3] = 0;
+	//p1.vertices = {0, 7, 4, 3};
+	p1.vertices[0] = 0;
+	p1.vertices[1] = 7;
+	p1.vertices[2] = 4;
+	p1.vertices[3] = 3;
+	//p2.vertices = {5, 4, 3, 2};
+	p2.vertices[0] = 5;
+	p2.vertices[1] = 4;
+	p2.vertices[2] = 3;
+	p2.vertices[3] = 2;
+	//p3.vertices = {1, 2, 5, 6};
+	p3.vertices[0] = 1;
+	p3.vertices[1] = 2;
+	p3.vertices[2] = 5;
+	p3.vertices[3] = 6;
+	//p4.vertices = {0, 1, 6, 7};
+	p4.vertices[0] = 0;
+	p4.vertices[1] = 1;
+	p4.vertices[2] = 6;
+	p4.vertices[3] = 7;
+	//p5.vertices = {4, 5, 6, 7};
+	p5.vertices[0] = 4;
+	p5.vertices[1] = 5;
+	p5.vertices[2] = 6;
+	p5.vertices[3] = 7;
+
+	struct object obj;
+	obj.num_polys_obj = 6;
+	obj.num_pts_obj = 8;
+	obj.object_polys[0] = p0;
+	obj.object_polys[1] = p1;
+	obj.object_polys[2] = p2;
+	obj.object_polys[3] = p3;
+	obj.object_polys[4] = p4;
+	obj.object_polys[5] = p5;
+	obj.object_points[0] = {200, 200, 1,   255, 0, 128};
+	obj.object_points[1] = {200, 400, 1,   128, 0, 0};
+	obj.object_points[2] = {400, 400, 1,   255, 255, 255};
+	obj.object_points[3] = {400, 200, 1,   0, 0, 255};
+	obj.object_points[4] = {200, 200, 200, 255, 255, 0};
+	obj.object_points[5] = {200, 400, 200, 128, 128, 0};
+	obj.object_points[6] = {400, 400, 200, 255, 0, 128};
+	obj.object_points[7] = {400, 200, 200, 0, 255, 255};
+	draw_3d_object(&obj, pFrame);
+
 	sleep(1);
 }
