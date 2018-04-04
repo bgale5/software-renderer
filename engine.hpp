@@ -12,7 +12,7 @@
 #define MaxNumObjs 20
 #define MaxNumPts 600
 #define MaxNumPolys 900
-#define NumSidesPoly 4
+#define NumSidesPoly 600
 
 //====== Structs & typedefs =========
 typedef unsigned char BYTE;
@@ -51,10 +51,10 @@ void sort_vertices(struct point_2d **triangle);
 void draw_line(struct point_2d p1, struct point_2d p2, BYTE *fBuffer);
 bool inside(struct point_2d **tri, struct point_2d *pt);
 bool same_side(struct point_2d a, struct point_2d b, struct point_2d l1, struct point_2d l2);
-void fill_poly(struct point_2d **poly, int vertex_count, BYTE *fBuffer);
+void fill_poly(struct polygon_2d *poly, BYTE *fBuffer);
 void fill_tri(struct point_2d **triangle, BYTE *fBuffer);
 bool concave(struct point_2d a, struct point_2d b, struct point_2d c);
-bool points_inside(struct point_2d **tri, struct point_2d **poly, int vertex_count);
+bool points_inside(struct point_2d **tri, struct polygon_2d *poly, int vertex_count);
 void clip_line(struct point_2d p1, struct point_2d p2, BYTE *fBuffer);
 struct point_2d rand_point();
 void draw_poly(struct point_2d **poly, int vertex_count, BYTE *fBuffer);
