@@ -1,5 +1,6 @@
 #ifndef ENGINE_H
 #define ENGINE_H
+#include <string>
  
 //====== Macros and Defines =========
 
@@ -10,9 +11,9 @@
 #define TMAX 1 // For parametric line equations
 #define PERSPECTIVE 500
 #define MaxNumObjs 20
-#define MaxNumPts 600
-#define MaxNumPolys 900
-#define NumSidesPoly 600
+#define MaxNumPts 20//600
+#define MaxNumPolys 20//900
+#define NumSidesPoly 20 //600
 
 //====== Structs & typedefs =========
 typedef unsigned char BYTE;
@@ -65,5 +66,6 @@ void draw_object_3d(struct object *obj, BYTE *fBuffer);
 void project_polygon(struct object *obj, struct polygon_2d *p2d);
 void SetPixel(struct point_2d point, BYTE *fBuffer);
 void draw_wireframe_3d(struct object *obj, BYTE *fBuffer);
+void load_vjs(std::string fpath, struct object *obj);
 
 #endif

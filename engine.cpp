@@ -5,6 +5,11 @@
 #include <unistd.h>			//- for sleep()
 #include <cstring>
 #include "engine.hpp"
+#include <string>
+#include <fstream>
+#include <sstream>
+#include <iostream>
+#include <vector>
 
 
 /*==================== Data Structure Initialisation and Cleanup ==================== */
@@ -137,7 +142,6 @@ void draw_tri(struct point_2d **tri, BYTE *fBuffer)
 	clip_line(*tri[0], *tri[2], fBuffer);
 	clip_line(*tri[1], *tri[2], fBuffer);
 }
-
 
 void draw_poly(struct polygon_2d *poly, BYTE *fBuffer)
 {
@@ -392,5 +396,61 @@ void sort_vertices(struct point_2d **triangle)
 		temp = triangle[1];
 		triangle[1] = triangle[2];
 		triangle[2] = temp;
+	}
+}
+
+std::vector<std::string> tokenize(std::string str, char sep=' ')
+{
+	std::vector<std::string> ret;
+	std::istringstream stm(str);
+	std::string token;
+	while (std::getline(stm, token, sep))
+		ret.push_back(token);
+	return ret;
+}
+
+struct point_3d toks_to_p3d(std::vector<std::string> &toks)
+{
+	struct point_3d p3d;
+	p3d.x = atoi(toks[0].c_str());
+	p3d.y = atoi(toks[1].c_str());
+	p3d.z = atoi(toks[2].c_str());
+	p3d.r = atoi(toks[3].c_str());
+	p3d.g = atoi(toks[4].c_str());
+	p3d.b = atoi(toks[5].c_str());
+	return p3d;
+}
+
+struct polygon_3d toks_to_poly3d(std::vector<std::string> &toks)
+{
+	struct polygon_3d poly;
+	poly.vertex_count = atoi(toks[0].c_str());
+	for (int i = 0; i < toks.size(); i++) {
+		poly.vertices[i] = atoi(toks[i + 1].c_str());
+	}
+	return poly;
+}
+
+void load_vjs(std::string fpath, struct object *obj)
+{
+	std::ifstream infile(fpath);
+	std::string linebuffer;
+	std::getline(infile, linebuffer);
+	std::vector<std::string> toks = tokenize(linebuffer, ',');
+	int vert_count = atoi(toks[0].c_str());
+	int poly_count = atoi(toks[1].c_str());
+	obj->vertex_count = vert_count;
+	obj->poly_count = poly_count;
+	for (int i = 0; i < vert_count; i++) {
+		std::getline(infile, linebuffer);
+		toks = tokenize(linebuffer, ' ');
+		struct point_3d point = toks_to_p3d(toks);
+		obj->object_points[i] = point;
+	}
+	for (int i = 0; i < poly_count; i++) {
+		std::getline(infile, linebuffer);
+		toks = tokenize(linebuffer, ' ');
+		struct polygon_3d poly = toks_to_poly3d(toks);
+		obj->object_polys[i] = poly;
 	}
 }

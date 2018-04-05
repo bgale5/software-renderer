@@ -184,7 +184,8 @@ void	PlaySoundEffect(char * filename)
 ////////////////////////////////////////////////////////
 // Drawing Funcion
 ////////////////////////////////////////////////////////
-
+bool loaded = false;
+struct object temp;
 void BuildFrame(BYTE *pFrame, int view)
 {
 	//struct point_2d p0 = {100, 250, 255, 0, 0};
@@ -210,67 +211,12 @@ void BuildFrame(BYTE *pFrame, int view)
 	//pol.points[8] = p8;
 	//pol.points[9] = p9;
 	//fill_poly(&pol, pFrame);
-	
-	struct polygon_3d p0;
-	p0.vertex_count = 4;
-	struct polygon_3d p1;
-	p1.vertex_count = 4;
-	struct polygon_3d p2;
-	p2.vertex_count = 4;
-	struct polygon_3d p3;
-	p3.vertex_count = 4;
-	struct polygon_3d p4;
-	p4.vertex_count = 4;
-	struct polygon_3d p5;
-	p5.vertex_count = 4;
-	//p0.vertices = {3, 2, 1, 0};
-	p0.vertices[0] = 0; // Frong
-	p0.vertices[1] = 1;
-	p0.vertices[2] = 2;
-	p0.vertices[3] = 3;
-	//p1.vertices = {0, 7, 4, 3};
-	p1.vertices[0] = 4; // Top
-	p1.vertices[1] = 0;
-	p1.vertices[2] = 3;
-	p1.vertices[3] = 7;
-	//p2.vertices = {5, 4, 3, 2};
-	p2.vertices[0] = 4; // Left
-	p2.vertices[1] = 5;
-	p2.vertices[2] = 1;
-	p2.vertices[3] = 0;
-	//p3.vertices = {1, 2, 5, 6};
-	p3.vertices[0] = 7; // Right
-	p3.vertices[1] = 6;
-	p3.vertices[2] = 2;
-	p3.vertices[3] = 3;
-	//p4.vertices = {0, 1, 6, 7};
-	p4.vertices[0] = 4; // Back
-	p4.vertices[1] = 5;
-	p4.vertices[2] = 6;
-	p4.vertices[3] = 7;
-	//p5.vertices = {4, 5, 6, 7};
-	p5.vertices[0] = 5; // Bottom
-	p5.vertices[1] = 1;
-	p5.vertices[2] = 2;
-	p5.vertices[3] = 6;
 
-	struct object obj;
-	obj.poly_count = 6;
-	obj.vertex_count = 8;
-	obj.object_polys[0] = p0;
-	obj.object_polys[1] = p1;
-	obj.object_polys[2] = p2;
-	obj.object_polys[3] = p3;
-	obj.object_polys[4] = p4;
-	obj.object_polys[5] = p5;
-	obj.object_points[0] = {200, 200, 1,   255, 0, 128};
-	obj.object_points[1] = {200, 400, 1,   128, 0, 0};
-	obj.object_points[2] = {400, 400, 1,   255, 255, 255};
-	obj.object_points[3] = {400, 200, 1,   0, 0, 255};
-	obj.object_points[4] = {200, 200, 200, 255, 255, 0};
-	obj.object_points[5] = {200, 400, 200, 128, 128, 0};
-	obj.object_points[6] = {400, 400, 200, 255, 0, 128};
-	obj.object_points[7] = {400, 200, 200, 0, 255, 255};
-	draw_object_3d(&obj, pFrame);
-	draw_wireframe_3d(&obj, pFrame);
+	if (!loaded) {
+		load_vjs("test.vjs", &temp);
+		loaded = true;
+	}
+	draw_object_3d(&temp, pFrame);
+	draw_wireframe_3d(&temp, pFrame);
+	//sleep(1);
 }
