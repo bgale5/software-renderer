@@ -44,11 +44,12 @@ struct point_2d project_point(struct point_3d p3d)
 void project_polygon(struct object *obj, struct polygon_2d *p2d)
 {
 	for (int i = 0; i < obj->poly_count; i++) { // For every polygon in the object...
-		struct polygon_3d *current_poly = &(obj->object_polys[i]);
+		//struct polygon_3d *current_poly = &(obj->object_polys[i]);
+		struct polygon_3d current_poly = obj->object_polys[i];
 		struct polygon_2d projected_poly;
-		projected_poly.vertex_count = current_poly->vertex_count;
-		for (int j = 0; j < current_poly->vertex_count; j++) { // For every point in the current polygon
-			projected_poly.points[j] = project_point(obj->object_points[current_poly->vertices[j]]);
+		projected_poly.vertex_count = current_poly.vertex_count;
+		for (int j = 0; j < current_poly.vertex_count; j++) { // For every point in the current polygon
+			projected_poly.points[j] = project_point(obj->object_points[current_poly.vertices[j]]);
 		}
 		p2d[i] = projected_poly;
 	}
@@ -130,11 +131,11 @@ void clip_line(struct point_2d p1, struct point_2d p2, BYTE *fBuffer)
 	}
 }
 
-void draw_tri(struct point_2d p1, struct point_2d p2, struct point_2d p3, BYTE *fBuffer)
+void draw_tri(struct point_2d **tri, BYTE *fBuffer)
 {
-	clip_line(p1, p2, fBuffer);
-	clip_line(p1, p3, fBuffer);
-	clip_line(p2, p3, fBuffer);
+	clip_line(*tri[0], *tri[1], fBuffer);
+	clip_line(*tri[0], *tri[2], fBuffer);
+	clip_line(*tri[1], *tri[2], fBuffer);
 }
 
 
@@ -153,9 +154,24 @@ void draw_poly(struct polygon_2d *poly, BYTE *fBuffer)
 
 void draw_object_3d(struct object *obj, BYTE *fBuffer)
 {
+	struct polygon_2d polys[obj->poly_count];
+	project_polygon(obj, polys);
 	for (int i = 0; i < obj->poly_count; i++) {
-		struct polygon_3d poly = obj->object_polys[i];
-		
+		fill_poly(&(polys[i]), fBuffer);
+	}
+}
+
+void draw_wireframe_3d(struct object *obj, BYTE *fBuffer)
+{
+	struct polygon_2d polys[obj->poly_count];
+	project_polygon(obj, polys);
+	for (int i = 0; i < obj->poly_count; i++) {
+		for (int j = 0; j < polys[i].vertex_count; j++) {
+			polys[i].points[j].r = 255;
+			polys[i].points[j].g = 255;
+			polys[i].points[j].b = 255;
+		}
+		draw_poly(&(polys[i]), fBuffer);
 	}
 }
 
@@ -202,9 +218,9 @@ int find_point(struct polygon_2d *neighbours, struct point_2d *point) // NOTE: A
 void fill_poly(struct polygon_2d *poly, BYTE *fBuffer)
 {
 	int vc = poly->vertex_count;
-	struct polygon_2d neighbours;
+	struct polygon_2d neighbours = *poly;
 	int neighbour_count = vc;
-	memcpy(&neighbours, poly, sizeof(struct polygon_2d));
+	//memcpy(&neighbours, poly, sizeof(struct polygon_2d));
 	for (int i = 0; i < vc; i++) {
 		int current = find_point(&neighbours, &(poly->points[i]));
 		int next_adjacent = current == neighbours.vertex_count - 1 ? 0 : current + 1;
@@ -217,11 +233,12 @@ void fill_poly(struct polygon_2d *poly, BYTE *fBuffer)
 		if (!points_inside(tri, poly, vc)
 				&& convex(neighbours.points[current], neighbours.points[prev_adjacent], neighbours.points[next_adjacent])) {
 			fill_tri(tri, fBuffer);
+			//draw_tri(tri, fBuffer);
 			remove_point(&neighbours, current);
 		}
 	}
-	if (neighbour_count >= 3) // fixes missing triangle on the big complex poly
-		fill_poly(&neighbours, fBuffer);
+	//if (neighbour_count >= 3) // fixes missing triangle on the big complex poly
+	//	fill_poly(&neighbours, fBuffer);
 }
 
 // Test to see if p0 is on the left/right side of p2 --> p1 edge.

@@ -60,7 +60,10 @@ struct point_2d rand_point();
 void draw_poly(struct point_2d **poly, int vertex_count, BYTE *fBuffer);
 bool convex(point_2d p2, point_2d p1, point_2d p0);
 void SetPixel3D(struct point_3d point, BYTE *fBuffer);
-void draw_3d_object(struct object *obj, BYTE *fBuffer);
 struct point_2d project_point(struct point_3d p3d);
+void draw_object_3d(struct object *obj, BYTE *fBuffer);
+void project_polygon(struct object *obj, struct polygon_2d *p2d);
+void SetPixel(struct point_2d point, BYTE *fBuffer);
+void draw_wireframe_3d(struct object *obj, BYTE *fBuffer);
 
 #endif
