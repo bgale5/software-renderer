@@ -185,38 +185,37 @@ void	PlaySoundEffect(char * filename)
 // Drawing Funcion
 ////////////////////////////////////////////////////////
 bool loaded = false;
-struct object temp;
+Object temp;
 void BuildFrame(BYTE *pFrame, int view)
 {
-	//struct point_2d p0 = {100, 250, 255, 0, 0};
-	//struct point_2d p1 = {250, 400, 0, 255, 0};
-	//struct point_2d p2 = {400, 300, 0, 0, 255};
-	//struct point_2d p3 = {500, 350, 100, 100, 100};
-	//struct point_2d p4 = {650, 150, 200, 200, 200};
-	//struct point_2d p5 = {500, 200, 255, 255, 255};
-	//struct point_2d p6 = {450, 100, 255, 255, 255};
-	//struct point_2d p7 = {350, 250, 255, 255, 255};
-	//struct point_2d p8 = {200, 200, 255, 255, 255};
-	//struct point_2d p9 = {250, 100, 255, 255, 255};
-	//struct polygon_2d pol;
-	//pol.vertex_count = 10;
-	//pol.points[0] = p0;
-	//pol.points[1] = p1;
-	//pol.points[2] = p2;
-	//pol.points[3] = p3;
-	//pol.points[4] = p4;
-	//pol.points[5] = p5;
-	//pol.points[6] = p6;
-	//pol.points[7] = p7;
-	//pol.points[8] = p8;
-	//pol.points[9] = p9;
-	//fill_poly(&pol, pFrame);
+	// Point_2d p0 = {100, 250, 255, 0, 0};
+	// Point_2d p1 = {250, 400, 0, 255, 0};
+	// Point_2d p2 = {400, 300, 0, 0, 255};
+	// Point_2d p3 = {500, 350, 100, 100, 100};
+	// Point_2d p4 = {650, 150, 200, 200, 200};
+	// Point_2d p5 = {500, 200, 255, 255, 255};
+	// Point_2d p6 = {450, 100, 255, 255, 255};
+	// Point_2d p7 = {350, 250, 255, 255, 255};
+	// Point_2d p8 = {200, 200, 255, 255, 255};
+	// Point_2d p9 = {250, 100, 255, 255, 255};
+	// Polygon_2d pol;
+	// pol.push_back(p0);
+	// pol.push_back(p1);
+	// pol.push_back(p2);
+	// pol.push_back(p3);
+	// pol.push_back(p4);
+	// pol.push_back(p5);
+	// pol.push_back(p6);
+	// pol.push_back(p7);
+	// pol.push_back(p8);
+	// pol.push_back(p9);
+	// fill_poly(pol, pFrame);
 
 	if (!loaded) {
-		load_vjs("test.vjs", &temp);
+		load_vjs("test.vjs", temp);
 		loaded = true;
 	}
-	draw_object_3d(&temp, pFrame);
-	draw_wireframe_3d(&temp, pFrame);
+	draw_object_3d(temp, pFrame);
+	draw_wireframe_3d(temp, pFrame);
 	//sleep(1);
 }

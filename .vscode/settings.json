@@ -1,6 +1,15 @@
 {
     "files.associations": {
         "stdexcept": "cpp",
-        "string": "cpp"
+        "string": "cpp",
+        "__config": "cpp",
+        "__nullptr": "cpp",
+        "cstddef": "cpp",
+        "exception": "cpp",
+        "initializer_list": "cpp",
+        "new": "cpp",
+        "type_traits": "cpp",
+        "typeinfo": "cpp",
+        "algorithm": "cpp"
     }
 }
