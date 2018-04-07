@@ -188,6 +188,27 @@ bool loaded = false;
 Object temp;
 void BuildFrame(BYTE *pFrame, int view)
 {
+	//  ------ CLIP LINE TEST ----- //
+
+	// Point_2d p0 = {100, 100, 255, 0, 0};
+	// Point_2d p1 = {400, 300, 0, 255, 0};
+	// clip_line(p0, p1, pFrame);
+
+	// ----- FILL TRIANGLE TEST ----- //
+
+	Point_2d p0 = {100, 100, 255, 0, 0};
+	Point_2d p2 = {400, 300, 0, 255, 0};
+	Point_2d p1 = {150, 500, 0, 0, 255};
+	Polygon_2d triangle;
+	triangle.push_back(p0);
+	triangle.push_back(p1);
+	triangle.push_back(p2);
+
+	fill_tri(triangle, pFrame);
+	draw_tri(triangle, pFrame);
+
+	// ------- COMPLEX POLY TEST ----- //
+
 	// Point_2d p0 = {100, 250, 255, 0, 0};
 	// Point_2d p1 = {250, 400, 0, 255, 0};
 	// Point_2d p2 = {400, 300, 0, 0, 255};
@@ -211,11 +232,13 @@ void BuildFrame(BYTE *pFrame, int view)
 	// pol.push_back(p9);
 	// fill_poly(pol, pFrame);
 
-	if (!loaded) {
-		load_vjs("test.vjs", temp);
-		loaded = true;
-	}
-	draw_object_3d(temp, pFrame);
-	draw_wireframe_3d(temp, pFrame);
+	// ----------- VJS LOAD TEST --------//
+
+	// if (!loaded) {
+	// 	load_vjs("test.vjs", temp);
+	// 	loaded = true;
+	// }
+	// draw_object_3d(temp, pFrame);
+	// draw_wireframe_3d(temp, pFrame);
 	//sleep(1);
 }

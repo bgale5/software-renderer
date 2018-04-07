@@ -22,13 +22,13 @@
 typedef unsigned char BYTE;
 
 typedef struct point_2d {
-	int x, y;
-	BYTE r, g, b;
+	double x, y;
+	double r, g, b;
 } Point_2d;
 
 typedef struct point_3d {
-	int x, y, z;
-	BYTE r, g, b;
+	double x, y, z;
+	double r, g, b;
 } Point_3d;
 
 typedef std::vector<Point_2d> Polygon_2d;

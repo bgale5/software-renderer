@@ -12,25 +12,24 @@
 #include <vector>
 #include <algorithm>
 
-
-/*==================== Data Structure Initialisation and Cleanup ==================== */
-
 /*======================= Drawing Functions ================================= */
 void draw_pixel_2d(const Point_2d &point, BYTE *fBuffer)
 {
+	int x = ROUND(point.x);
+	int y = ROUND(point.y);
 	if (point.x < 0 || point.x > FRAME_WIDE - 1 || point.y < 0 || point.y > FRAME_HIGH - 1) {
 		printf("Warning: point falls out of bounds!\n");
 		return;
 	}
-	fBuffer[3 * (point.y * FRAME_WIDE + point.x)] = point.r; // R
-	fBuffer[3 * (point.y * FRAME_WIDE + point.x) + 1] = point.g; // G
-	fBuffer[3 * (point.y * FRAME_WIDE + point.x) + 2] = point.b; // B
+	fBuffer[3 * (y * FRAME_WIDE + x)] = (BYTE)point.r;		// R
+	fBuffer[3 * (y * FRAME_WIDE + x) + 1] = (BYTE)point.g; 	// G
+	fBuffer[3 * (y * FRAME_WIDE + x) + 2] = (BYTE)point.b; 	// B
 }
 
 void draw_pixel_3d(const Point_3d &p, BYTE *fBuffer)
 {
-	Point_2d point = {(int)(p.x * X_OFFSET / (double)(p.z + X_OFFSET)),
-				(int)(p.y * Y_OFFSET / (double)(p.z + Y_OFFSET)),
+	Point_2d point = {(p.x * X_OFFSET / (double)(p.z + X_OFFSET)),
+				(p.y * Y_OFFSET / (double)(p.z + Y_OFFSET)),
 				p.r, p.g, p.b};
 	draw_pixel_2d(point, fBuffer);
 }
@@ -38,8 +37,8 @@ void draw_pixel_3d(const Point_3d &p, BYTE *fBuffer)
 Point_2d project_point(const Point_3d &p3d)
 {
 	Point_2d p2d = {
-		(int)((p3d.x - X_OFFSET) * PERSPECTIVE / (double)(p3d.z + PERSPECTIVE)) + X_OFFSET,
-		(int)((p3d.y - Y_OFFSET) * PERSPECTIVE / (double)(p3d.z + PERSPECTIVE)) + Y_OFFSET,
+		((p3d.x - X_OFFSET) * PERSPECTIVE / (double)(p3d.z + PERSPECTIVE)) + X_OFFSET,
+		((p3d.y - Y_OFFSET) * PERSPECTIVE / (double)(p3d.z + PERSPECTIVE)) + Y_OFFSET,
 		p3d.r,
 		p3d.g,
 		p3d.b
@@ -61,11 +60,7 @@ void project_polygon(const Object &obj, std::vector<Polygon_2d> &projected_polys
 
 void draw_line(Point_2d p1, Point_2d p2, BYTE *fBuffer)
 {
-	double x = (double)(p1.x);
-	double y = (double)(p1.y);
-	double r = (double)(p1.r);
-	double g = (double)(p1.g);
-	double b = (double)(p1.b);
+	Point_2d buffer = p1;
 	int dx = p2.x - p1.x;
 	int dy = p2.y - p1.y;
 	int steps = abs(dx) > abs(dy) ? abs(dx) : abs(dy);
@@ -76,13 +71,13 @@ void draw_line(Point_2d p1, Point_2d p2, BYTE *fBuffer)
 	double y_inc = dy / (double)steps;
 	draw_pixel_2d(p1, fBuffer);
 	for (int i = 0; i < steps; i++) {
-		x += x_inc;
-		y += y_inc;
-		r += step_r;
-		g += step_g;
-		b += step_b;
-		p1 = {ROUND(x), ROUND(y), (BYTE)r, (BYTE)g, (BYTE)b};
-		draw_pixel_2d(p1, fBuffer);
+		buffer.x += x_inc;
+		buffer.y += y_inc;
+		buffer.r += step_r;
+		buffer.g += step_g;
+		buffer.b += step_b;
+		//p1 = {ROUND(x), ROUND(y), (BYTE)r, (BYTE)g, (BYTE)b};
+		draw_pixel_2d(buffer, fBuffer);
 	}
 }
 
@@ -134,7 +129,6 @@ void clip_line(Point_2d p1, Point_2d p2, BYTE *fBuffer)
 		}
 	}
 }
-
 
 // If tri contains more than 3 points, the excess will be ignored
 void draw_tri(const Polygon_2d &tri, BYTE *fBuffer)
@@ -266,80 +260,59 @@ bool collinear(const Polygon_2d &tri)
 	return true;
 }
 
+Point_2d point_gradient(const Point_2d &p1, const Point_2d &p2)
+{
+	Point_2d gradient = {
+		p1.x - p2.x,
+		p1.y - p2.y,
+		p1.r - p2.r,
+		p1.g - p2.g,
+		p1.b - p2.b
+	};
+	return gradient;
+}
+
 //TODO: Refactor, get rid of all the local variables?
 //TODO: Fix colour overflow bug
 void fill_tri(Polygon_2d &triangle, BYTE *fBuffer)
 {
+	printf("Before sort:\n0: (%f, %f) 1: (%f, %f) 2: (%f, %f)\n", triangle[0].x, triangle[0].y, triangle[1].x, triangle[1].y, triangle[2].x, triangle[2].y);
 	sort_vertices(triangle);
+	printf("After sort:\n0: (%f, %f) 1: (%f, %f) 2: (%f, %f)\n", triangle[0].x, triangle[0].y, triangle[1].x, triangle[1].y, triangle[2].x, triangle[2].y);
 	if (collinear(triangle)) {
 		clip_line(triangle[0], triangle[1], fBuffer);
 		clip_line(triangle[1], triangle[2], fBuffer);
 		return;
 	}
 	// Placeholder variables for maintaining current value after truncation
-	double fromx = (double)triangle[0].x;
-	double tox   = (double)triangle[0].x;
-	double fromr = (double)triangle[0].r;
-	double fromg = (double)triangle[0].g;
-	double fromb = (double)triangle[0].b;
-	double tor   = (double)triangle[0].r;
-	double tog   = (double)triangle[0].g;
-	double tob   = (double)triangle[0].b;
-	
+	Point_2d from, to;
+	from = to = triangle[0];
+
 	// Gradients
-	int a, b;
+	Point_2d from_gradient, to_gradient;
+	to_gradient = point_gradient(triangle[2], triangle[0]);
 	if (triangle[0].y == triangle[1].y) { // Handle flat-topped triangles
-		a = 2;
-		b = 1;
-		fromx = double(triangle[1].x);
+		from.x = triangle[1].x;
+		from_gradient = point_gradient(triangle[2], triangle[1]);
 	} else {
-		a = 1;
-		b = 0;	}
-	int from_dx = (triangle[a].x - triangle[b].x);
-	int from_dy = (triangle[a].y - triangle[b].y);
-	int from_dr = (triangle[a].r - triangle[b].r);
-	int from_dg = (triangle[a].g - triangle[b].g);
-	int from_db = (triangle[a].b - triangle[b].b);
-
-	int to_dx = (triangle[2].x - triangle[0].x);
-	int to_dy = (triangle[2].y - triangle[0].y);
-	int to_dr = (triangle[2].r - triangle[0].r);
-	int to_dg = (triangle[2].g - triangle[0].g);
-	int to_db = (triangle[2].b - triangle[0].b);
-
-	// Step (increment) values
-	double from_inc = from_dx / (double)from_dy;
-	double to_inc = to_dx / (double)to_dy;
-	double from_r_inc = from_dr / (double)from_dy;
-	double from_g_inc = from_dg / (double)from_dy;
-	double from_b_inc = from_db / (double)from_dy;
-	double to_r_inc = to_dr / (double)to_dy;
-	double to_g_inc = to_dg / (double)to_dy;
-	double to_b_inc = to_db / (double)to_dy; //TODO: Refactor
+		from_gradient = point_gradient(triangle[1], triangle[0]);
+	}
 
 	for (int y = triangle[0].y; y < triangle[2].y; y++) {
 		if (triangle[1].y == y) {
-			from_dx = triangle[2].x - triangle[1].x;
-			from_dy = triangle[2].y - triangle[1].y;
-			from_inc = from_dx / (double)from_dy;
-
-			from_dr = triangle[2].r - triangle[1].r;
-			from_dg = triangle[2].g - triangle[1].g;
-			from_db = triangle[2].b - triangle[1].b;
-			from_r_inc = from_dr / (double)from_dy;
-			from_g_inc = from_dg / (double)from_dy;
-			from_b_inc = from_db / (double)from_dy;
+			from_gradient = point_gradient(triangle[2], triangle[1]);
 		}
-		fromx += from_inc;
-		tox += to_inc;
-		fromr += from_r_inc;
-		fromg += from_g_inc;
-		fromb += from_b_inc;
-		tor += to_r_inc;
-		tog += to_g_inc;
-		tob += to_b_inc;
-		//draw_line({ROUND(fromx), y, (BYTE)fromr, (BYTE)(fromg), (BYTE)(fromb)}, {ROUND(tox), y, (BYTE)(tor), (BYTE)(tog), (BYTE)(tob)}, fBuffer);
-		clip_line({ROUND(fromx), y, (BYTE)fromr, (BYTE)(fromg), (BYTE)(fromb)}, {ROUND(tox), y, (BYTE)(tor), (BYTE)(tog), (BYTE)(tob)}, fBuffer);
+		from.x += from_gradient.x / from_gradient.y;
+		from.r += from_gradient.r / from_gradient.y;
+		from.g += from_gradient.g / from_gradient.y;
+		from.b += from_gradient.b / from_gradient.y;
+		to.x += to_gradient.x / to_gradient.y;
+		to.r += to_gradient.r / to_gradient.y;
+		to.g += to_gradient.g / to_gradient.y;
+		to.b += to_gradient.b / to_gradient.y;
+		from.y = y;
+		to.y = y;
+		clip_line(from, to, fBuffer);
 	}
 }
 
