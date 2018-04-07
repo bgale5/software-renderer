@@ -18,8 +18,8 @@
 /*======================= Drawing Functions ================================= */
 void draw_pixel_2d(const Point_2d &point, BYTE *fBuffer)
 {
-	if (point.x < 0 || point.x > FRAME_WIDE || point.y < 0 || point.y > FRAME_HIGH) {
-		printf("Point falls out of bounds!\n");
+	if (point.x < 0 || point.x > FRAME_WIDE - 1 || point.y < 0 || point.y > FRAME_HIGH - 1) {
+		printf("Warning: point falls out of bounds!\n");
 		return;
 	}
 	fBuffer[3 * (point.y * FRAME_WIDE + point.x)] = point.r; // R
@@ -29,8 +29,8 @@ void draw_pixel_2d(const Point_2d &point, BYTE *fBuffer)
 
 void draw_pixel_3d(const Point_3d &p, BYTE *fBuffer)
 {
-	Point_2d point = {(int)(p.x * PERSPECTIVE / (double)(p.z + PERSPECTIVE)),
-				(int)(p.y * PERSPECTIVE / (double)(p.z + PERSPECTIVE)),
+	Point_2d point = {(int)(p.x * X_OFFSET / (double)(p.z + X_OFFSET)),
+				(int)(p.y * Y_OFFSET / (double)(p.z + Y_OFFSET)),
 				p.r, p.g, p.b};
 	draw_pixel_2d(point, fBuffer);
 }
@@ -38,8 +38,8 @@ void draw_pixel_3d(const Point_3d &p, BYTE *fBuffer)
 Point_2d project_point(const Point_3d &p3d)
 {
 	Point_2d p2d = {
-		(int)(p3d.x * PERSPECTIVE / (double)(p3d.z + PERSPECTIVE)),
-		(int)(p3d.y * PERSPECTIVE / (double)(p3d.z + PERSPECTIVE)),
+		(int)((p3d.x - X_OFFSET) * PERSPECTIVE / (double)(p3d.z + PERSPECTIVE)) + X_OFFSET,
+		(int)((p3d.y - Y_OFFSET) * PERSPECTIVE / (double)(p3d.z + PERSPECTIVE)) + Y_OFFSET,
 		p3d.r,
 		p3d.g,
 		p3d.b
@@ -266,6 +266,8 @@ bool collinear(const Polygon_2d &tri)
 	return true;
 }
 
+//TODO: Refactor, get rid of all the local variables?
+//TODO: Fix colour overflow bug
 void fill_tri(Polygon_2d &triangle, BYTE *fBuffer)
 {
 	sort_vertices(triangle);

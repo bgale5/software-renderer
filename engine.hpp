@@ -10,6 +10,8 @@
 #define ROUND(x) ((int)(x+0.5))
 #define TMIN 0 // For parametric line equations
 #define TMAX 1 // For parametric line equations
+#define X_OFFSET FRAME_WIDE / 2
+#define Y_OFFSET FRAME_HIGH / 2
 #define PERSPECTIVE 500
 #define MaxNumObjs 20
 #define MaxNumPts 20//600
