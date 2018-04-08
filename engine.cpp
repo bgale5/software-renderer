@@ -73,14 +73,14 @@ void draw_line(Point_2d p1, Point_2d p2, BYTE *fBuffer)
 	double step_b = (p2.b - p1.b) / (double)steps;
 	double x_inc = dx / (double)steps;
 	double y_inc = dy / (double)steps;
-	//draw_pixel_2d(p1, fBuffer);
+	draw_pixel_2d(buffer, fBuffer);
 	for (int i = 0; i < steps; i++) {
-		draw_pixel_2d(buffer, fBuffer);
 		buffer.x += x_inc;
 		buffer.y += y_inc;
 		buffer.r += step_r;
 		buffer.g += step_g;
 		buffer.b += step_b;
+		draw_pixel_2d(buffer, fBuffer);
 	}
 }
 
@@ -160,6 +160,7 @@ void draw_object_3d(const Object &obj, BYTE *fBuffer)
 	project_polygon(obj, projected_polys); // Populates projected_polys
 	for (int i = 0; i < projected_polys.size(); i++) {
 		fill_poly(projected_polys[i], fBuffer);
+		//draw_poly(projected_polys[i], fBuffer);
 	}
 }
 
@@ -218,8 +219,10 @@ void fill_poly(const Polygon_2d &poly, BYTE *fBuffer)
 			neighbours.erase(neighbours.begin()+current);
 		}
 	}
-	//if (neighbours.size() >= 3) // fixes missing triangle on the big complex poly
-	//	fill_poly(neighbours, fBuffer);
+	// if (neighbours.size() >= 3) {
+	// 	Polygon_2d test = neighbours;
+	// 	fill_poly(test, fBuffer);
+	// }
 }
 
 // Test to see if p0 is on the left/right side of p2 --> p1 edge.
@@ -304,6 +307,7 @@ void fill_tri(Polygon_2d &triangle, BYTE *fBuffer)
 		end.g += end_gradient.g / end_gradient.y;
 		end.b += end_gradient.b / end_gradient.y;
 	}
+	draw_tri(triangle, fBuffer);
 }
 
 Point_2d rand_point()

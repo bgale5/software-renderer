@@ -12,6 +12,8 @@
         "typeinfo": "cpp",
         "algorithm": "cpp",
         "iterator": "cpp",
-        "chrono": "cpp"
+        "chrono": "cpp",
+        "__split_buffer": "cpp",
+        "vector": "cpp"
     }
 }
