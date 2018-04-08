@@ -5,6 +5,7 @@
 #include <unistd.h>			//- for sleep()
 #include <cstring>
 #include "engine.hpp"
+#include <cmath>
 
 #ifdef _WIN32
 	#include "libs/glut.h"
@@ -196,16 +197,23 @@ void BuildFrame(BYTE *pFrame, int view)
 
 	// ----- FILL TRIANGLE TEST ----- //
 
-	Point_2d p0 = {100, 100, 255, 0, 0};
-	Point_2d p2 = {400, 300, 0, 255, 0};
-	Point_2d p1 = {150, 500, 0, 0, 255};
+	Point_2d p0 = {(double)(rand() % FRAME_WIDE - 1), 100, 255, 10, 10};
+	Point_2d p2 = {(double)(rand() % FRAME_WIDE - 1), 100, 10, 255, 10};
+	Point_2d p1 = {(double)(rand() % FRAME_WIDE - 1), 500, 10, 10, 255};
+	// p0.x = rand() % FRAME_WIDE - 1;
+	// p1.x = rand() % FRAME_WIDE - 1;
+	// p2.x = rand() % FRAME_WIDE - 1;
+	// p0.y = rand() % FRAME_HIGH - 1;
+	// p1.y = rand() % FRAME_HIGH - 1;
+	// p2.y = rand() % FRAME_HIGH - 1;
+	// p1.y = p2.y;
 	Polygon_2d triangle;
 	triangle.push_back(p0);
 	triangle.push_back(p1);
 	triangle.push_back(p2);
 
 	fill_tri(triangle, pFrame);
-	draw_tri(triangle, pFrame);
+	//draw_tri(triangle, pFrame);
 
 	// ------- COMPLEX POLY TEST ----- //
 
@@ -238,7 +246,18 @@ void BuildFrame(BYTE *pFrame, int view)
 	// 	load_vjs("test.vjs", temp);
 	// 	loaded = true;
 	// }
+	// printf("Loaded object:\n");
+	// printf("Vertices:\n");
+	// for (int i = 0; i < temp.vertex_count; i++) {
+	// 	Point_3d vert = temp.vertices[i];
+	// 	printf("(%d, %d, %d, %d, %d, %d)\n", (int)vert.x, (int)vert.y, (int)vert.z, (BYTE)vert.r, (BYTE)vert.g, (BYTE)vert.b);
+	// }
+	// printf("Polygons:\n");
+	// for (int i = 0; i < temp.poly_count; i++) {
+	// 	Polygon_3d polygon = temp.polys[i];
+	// 	printf("(%d, %d, %d, %d)\n", polygon[0], polygon[1], polygon[2], polygon[3]);
+	// }
 	// draw_object_3d(temp, pFrame);
-	// draw_wireframe_3d(temp, pFrame);
-	//sleep(1);
+	//draw_wireframe_3d(temp, pFrame);
+	sleep(1);
 }

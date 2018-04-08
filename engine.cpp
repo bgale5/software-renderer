@@ -11,19 +11,23 @@
 #include <iostream>
 #include <vector>
 #include <algorithm>
+#include <cmath>
 
 /*======================= Drawing Functions ================================= */
 void draw_pixel_2d(const Point_2d &point, BYTE *fBuffer)
 {
-	int x = ROUND(point.x);
-	int y = ROUND(point.y);
-	if (point.x < 0 || point.x > FRAME_WIDE - 1 || point.y < 0 || point.y > FRAME_HIGH - 1) {
+	int x =  ROUND(point.x);
+	int y =  ROUND(point.y);
+	BYTE r = ROUND(point.r);
+	BYTE g = ROUND(point.g);
+	BYTE b = ROUND(point.b);
+	if (x < 0 || x > FRAME_WIDE - 1 || y < 0 || y > FRAME_HIGH - 1) {
 		printf("Warning: point falls out of bounds!\n");
 		return;
 	}
-	fBuffer[3 * (y * FRAME_WIDE + x)] = (BYTE)point.r;		// R
-	fBuffer[3 * (y * FRAME_WIDE + x) + 1] = (BYTE)point.g; 	// G
-	fBuffer[3 * (y * FRAME_WIDE + x) + 2] = (BYTE)point.b; 	// B
+	fBuffer[3 * (y * FRAME_WIDE + x)] = r;		// R
+	fBuffer[3 * (y * FRAME_WIDE + x) + 1] = g; 	// G
+	fBuffer[3 * (y * FRAME_WIDE + x) + 2] = b; 	// B
 }
 
 void draw_pixel_3d(const Point_3d &p, BYTE *fBuffer)
@@ -69,15 +73,14 @@ void draw_line(Point_2d p1, Point_2d p2, BYTE *fBuffer)
 	double step_b = (p2.b - p1.b) / (double)steps;
 	double x_inc = dx / (double)steps;
 	double y_inc = dy / (double)steps;
-	draw_pixel_2d(p1, fBuffer);
+	//draw_pixel_2d(p1, fBuffer);
 	for (int i = 0; i < steps; i++) {
+		draw_pixel_2d(buffer, fBuffer);
 		buffer.x += x_inc;
 		buffer.y += y_inc;
 		buffer.r += step_r;
 		buffer.g += step_g;
 		buffer.b += step_b;
-		//p1 = {ROUND(x), ROUND(y), (BYTE)r, (BYTE)g, (BYTE)b};
-		draw_pixel_2d(buffer, fBuffer);
 	}
 }
 
@@ -263,11 +266,11 @@ bool collinear(const Polygon_2d &tri)
 Point_2d point_gradient(const Point_2d &p1, const Point_2d &p2)
 {
 	Point_2d gradient = {
-		p1.x - p2.x,
-		p1.y - p2.y,
-		p1.r - p2.r,
-		p1.g - p2.g,
-		p1.b - p2.b
+		floor(p1.x - p2.x),
+		floor(p1.y - p2.y),
+		floor(p1.r - p2.r),
+		floor(p1.g - p2.g),
+		floor(p1.b - p2.b)
 	};
 	return gradient;
 }
@@ -276,43 +279,30 @@ Point_2d point_gradient(const Point_2d &p1, const Point_2d &p2)
 //TODO: Fix colour overflow bug
 void fill_tri(Polygon_2d &triangle, BYTE *fBuffer)
 {
-	printf("Before sort:\n0: (%f, %f) 1: (%f, %f) 2: (%f, %f)\n", triangle[0].x, triangle[0].y, triangle[1].x, triangle[1].y, triangle[2].x, triangle[2].y);
 	sort_vertices(triangle);
-	printf("After sort:\n0: (%f, %f) 1: (%f, %f) 2: (%f, %f)\n", triangle[0].x, triangle[0].y, triangle[1].x, triangle[1].y, triangle[2].x, triangle[2].y);
 	if (collinear(triangle)) {
 		clip_line(triangle[0], triangle[1], fBuffer);
 		clip_line(triangle[1], triangle[2], fBuffer);
 		return;
-	}
-	// Placeholder variables for maintaining current value after truncation
-	Point_2d from, to;
-	from = to = triangle[0];
-
-	// Gradients
-	Point_2d from_gradient, to_gradient;
-	to_gradient = point_gradient(triangle[2], triangle[0]);
-	if (triangle[0].y == triangle[1].y) { // Handle flat-topped triangles
-		from.x = triangle[1].x;
-		from_gradient = point_gradient(triangle[2], triangle[1]);
-	} else {
-		from_gradient = point_gradient(triangle[1], triangle[0]);
-	}
-
-	for (int y = triangle[0].y; y < triangle[2].y; y++) {
-		if (triangle[1].y == y) {
-			from_gradient = point_gradient(triangle[2], triangle[1]);
-		}
-		from.x += from_gradient.x / from_gradient.y;
-		from.r += from_gradient.r / from_gradient.y;
-		from.g += from_gradient.g / from_gradient.y;
-		from.b += from_gradient.b / from_gradient.y;
-		to.x += to_gradient.x / to_gradient.y;
-		to.r += to_gradient.r / to_gradient.y;
-		to.g += to_gradient.g / to_gradient.y;
-		to.b += to_gradient.b / to_gradient.y;
-		from.y = y;
-		to.y = y;
-		clip_line(from, to, fBuffer);
+	} // handle collinear case
+	Point_2d start, end;
+	end = triangle[0];
+	start = triangle[0].y == triangle[1].y ? triangle[1] : triangle[0]; // handle flat-top case
+	Point_2d start_gradient, end_gradient;
+	start_gradient = point_gradient(triangle[1], triangle[0]);
+	end_gradient = point_gradient(triangle[2], triangle[0]);
+	for (int y = triangle[0].y; y < triangle[2].y; y++, start.y++, end.y++) {
+		if (y == triangle[1].y)
+			start_gradient = point_gradient(triangle[2], triangle[1]);
+		draw_line(start, end, fBuffer);
+		start.x += start_gradient.x / start_gradient.y;
+		start.r += start_gradient.r / start_gradient.y;
+		start.g += start_gradient.g / start_gradient.y;
+		start.b += start_gradient.b / start_gradient.y;
+		end.x += end_gradient.x / end_gradient.y;
+		end.r += end_gradient.r / end_gradient.y;
+		end.g += end_gradient.g / end_gradient.y;
+		end.b += end_gradient.b / end_gradient.y;
 	}
 }
 
