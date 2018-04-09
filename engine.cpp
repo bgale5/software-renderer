@@ -20,11 +20,11 @@ std::vector<Object*> translatable;
 /*======================= Drawing Functions ================================= */
 void draw_pixel_2d(const Point_2d &point, BYTE *fBuffer)
 {
-	int x =  ROUND(point.x);
-	int y =  ROUND(point.y);
-	BYTE r = ROUND(point.r);
-	BYTE g = ROUND(point.g);
-	BYTE b = ROUND(point.b);
+	int x =  floor(point.x);
+	int y =  floor(point.y);
+	BYTE r = floor(point.r);
+	BYTE g = floor(point.g);
+	BYTE b = floor(point.b);
 	if (x < 0 || x > FRAME_WIDE - 1 || y < 0 || y > FRAME_HIGH - 1) {
 		printf("Warning: point falls out of bounds!\n");
 		return;
@@ -152,8 +152,8 @@ void draw_poly(const Polygon_2d &poly, BYTE *fBuffer)
 		draw_pixel_2d(poly[0], fBuffer);
 		return;
 	}
-	for (int a = 0, b = 1; b < vc; a++, b++) {
-		clip_line(poly[a], poly[b], fBuffer);
+	for (int a = 0; a + 1 < vc; a++) {
+		clip_line(poly[a], poly[a + 1], fBuffer);
 	}
 	clip_line(poly[vc - 1], poly[0], fBuffer);
 }
@@ -228,8 +228,8 @@ void fill_poly(Polygon_2d poly, BYTE *fBuffer)
 	int tri_count = 0;
 	std::sort(poly.begin(), poly.end(), left); // order on points' x vals
 	for (int i = 0; tri_count < poly.size() - 2; i++) {
-		if (i == 0)
-			poly = neighbours; // Dump points that have already been drawn
+		// if (i == 0)
+		// 	poly = neighbours; // Dump points that have already been drawn
 		int wrap = i % poly.size();
 		int current = find_point(neighbours, poly[wrap]);
 		int next_adjacent = current == neighbours.size() - 1 ? 0 : current + 1;
@@ -344,6 +344,34 @@ Point_2d rand_point()
 	point.g = (BYTE)(rand() % 255);
 	point.b = (BYTE)(rand() % 255);
 	return point;
+}
+
+Polygon_2d rand_polygon(const Point_2d &centre, double angle_increment)
+{
+	Polygon_2d poly;
+	double mag, x, y, r, g, b;
+	for(double theta = 0; theta < 2 * M_PI; theta += angle_increment) {
+		mag = rand() % 250;
+		if (theta <= M_PI / 2.0) {
+			x = mag * cos(theta);
+			y = mag * sin(theta);
+		} else if (theta > M_PI / 2.0 && theta <= M_PI) {
+			x = mag * cos(theta);
+			y = mag * sin(theta);
+		} else if (theta > M_PI && theta <= 3 * M_PI / 2.0) {
+			x = mag * cos(theta);
+			y = mag * sin(theta);
+		} else {
+			x = mag * cos(theta);
+			y = mag * sin(theta);
+		}
+		r = (double)(rand() % 255);
+		g = (double)(rand() % 255);
+		b = (double)(rand() % 255);
+		Point_2d point = {centre.x + x, centre.y - y, r, g, b};
+		poly.push_back(point);
+	}
+	return poly;
 }
 
 /*

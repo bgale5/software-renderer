@@ -222,30 +222,9 @@ void BuildFrame(BYTE *pFrame, int view)
 
 	// -------  POLY TEST ----- //
 
-	Point_2d p0 = {100, 250, 255, 0, 0};
-	Point_2d p1 = {250, 400, 0, 255, 0};
-	Point_2d p2 = {400, 300, 0, 0, 255};
-	Point_2d p3 = {500, 350, 100, 100, 100};
-	Point_2d p4 = {650, 150, 200, 200, 200};
-	Point_2d p5 = {500, 200, 255, 255, 255};
-	Point_2d p6 = {450, 100, 255, 255, 255};
-	Point_2d p7 = {350, 250, 255, 255, 255};
-	Point_2d p8 = {200, 200, 255, 255, 255};
-	Point_2d p9 = {250, 100, 255, 255, 255};
-	Polygon_2d pol;
-	
-	pol.push_back(p0);
-	pol.push_back(p1);
-	pol.push_back(p2);
-	pol.push_back(p3);
-	pol.push_back(p4);
-	pol.push_back(p5);
-	pol.push_back(p6);
-	pol.push_back(p7);
-	pol.push_back(p8);
-	pol.push_back(p9);
-	
-	fill_poly(pol, pFrame);
+	Polygon_2d random = rand_polygon({FRAME_WIDE / 2, FRAME_HIGH / 2, 0, 0, 0}, M_PI / 3.0);
+	draw_poly(random, pFrame);
+	fill_poly(random, pFrame);
 
 	// ----------- VJS LOAD TEST --------//
 
@@ -272,5 +251,5 @@ void BuildFrame(BYTE *pFrame, int view)
 	// draw_object_3d(temp, pFrame);
 	// //draw_wireframe_3d(temp, pFrame);
 	
-	//sleep(1);
+	sleep(1);
 }
