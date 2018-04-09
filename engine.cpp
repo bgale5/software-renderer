@@ -20,11 +20,11 @@ std::vector<Object*> translatable;
 /*======================= Drawing Functions ================================= */
 void draw_pixel_2d(const Point_2d &point, BYTE *fBuffer)
 {
-	int x =  floor(point.x);
-	int y =  floor(point.y);
-	BYTE r = floor(point.r);
-	BYTE g = floor(point.g);
-	BYTE b = floor(point.b);
+	int x =  ROUND(point.x);
+	int y =  ROUND(point.y);
+	BYTE r = ROUND(point.r);
+	BYTE g = ROUND(point.g);
+	BYTE b = ROUND(point.b);
 	if (x < 0 || x > FRAME_WIDE - 1 || y < 0 || y > FRAME_HIGH - 1) {
 		printf("Warning: point falls out of bounds!\n");
 		return;
@@ -225,12 +225,13 @@ bool left(Point_2d i, Point_2d j){ return i.x < j.x; }
 void fill_poly(Polygon_2d poly, BYTE *fBuffer)
 {
 	Polygon_2d neighbours = poly;
+	Polygon_2d original = poly;
 	int tri_count = 0;
 	std::sort(poly.begin(), poly.end(), left); // order on points' x vals
 	for (int i = 0; tri_count < poly.size() - 2; i++) {
-		// if (i == 0)
-		// 	poly = neighbours; // Dump points that have already been drawn
 		int wrap = i % poly.size();
+		if (wrap == 0)
+			poly = neighbours;
 		int current = find_point(neighbours, poly[wrap]);
 		int next_adjacent = current == neighbours.size() - 1 ? 0 : current + 1;
 		int prev_adjacent = current == 0 ? neighbours.size() - 1 : current - 1;
@@ -239,7 +240,7 @@ void fill_poly(Polygon_2d poly, BYTE *fBuffer)
 			neighbours[next_adjacent],
 			neighbours[prev_adjacent]
 		};
-		if (points_inside(tri, poly) ||
+		if (points_inside(tri, original) ||
 		!convex(neighbours[current], neighbours[prev_adjacent], neighbours[next_adjacent])) {
 			continue;
 		}
@@ -368,9 +369,10 @@ Polygon_2d rand_polygon(const Point_2d &centre, double angle_increment)
 		r = (double)(rand() % 255);
 		g = (double)(rand() % 255);
 		b = (double)(rand() % 255);
-		Point_2d point = {centre.x + x, centre.y - y, r, g, b};
+		Point_2d point = {centre.x + x, centre.y + y, r, g, b};
 		poly.push_back(point);
 	}
+	std::reverse(poly.begin(), poly.end()); // make it CCW TODO: make it CCW in first place
 	return poly;
 }
 

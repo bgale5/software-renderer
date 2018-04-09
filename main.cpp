@@ -196,6 +196,8 @@ void	PlaySoundEffect(char * filename)
 ////////////////////////////////////////////////////////
 bool loaded = false;
 Object temp;
+int counter = 0;
+
 void BuildFrame(BYTE *pFrame, int view)
 {
 	//  ------ CLIP LINE TEST ----- //
@@ -206,25 +208,37 @@ void BuildFrame(BYTE *pFrame, int view)
 
 	// ----- FILL TRIANGLE TEST ----- //
 
-	// Point_2d p0 = {(double)(rand() % FRAME_WIDE - 1), 100, 255, 10, 10};
-	// Point_2d p2 = {(double)(rand() % FRAME_WIDE - 1), 100, 10, 255, 10};
-	// Point_2d p1 = {(double)(rand() % FRAME_WIDE - 1), 500, 10, 10, 255};
-	// Polygon_2d triangle;
-	// triangle.push_back(p0);
-	// triangle.push_back(p1);
-	// triangle.push_back(p2);
+	Point_2d p0 = rand_point();
+	Point_2d p2 = rand_point();
+	Point_2d p1 = rand_point();
+	Polygon_2d triangle;
+	triangle.push_back(p0);
+	triangle.push_back(p1);
+	triangle.push_back(p2);
 
-	// fill_tri(triangle, pFrame);
-	// triangle[0] = {p0.x, p0.y, 255, 255, 255};
-	// triangle[1] = {p1.x, p1.y, 255, 255, 255};
-	// triangle[2] = {p2.x, p2.y, 255, 255, 255};
-	// draw_tri(triangle, pFrame);
+	fill_tri(triangle, pFrame);
 
 	// -------  POLY TEST ----- //
 
-	Polygon_2d random = rand_polygon({FRAME_WIDE / 2, FRAME_HIGH / 2, 0, 0, 0}, M_PI / 3.0);
-	draw_poly(random, pFrame);
-	fill_poly(random, pFrame);
+	
+
+	// // Point_2d p0 = {100, 100, 255, 255, 255};
+	// // Point_2d p1 = {100, 500, 255, 0, 0};
+	// // Point_2d pa = {400, 250, 0, 255, 255};
+	// // Point_2d p2 = {500, 500, 0, 255, 0};
+	// // Point_2d p3 = {500, 150, 0, 0, 255};
+	// // Point_2d p4 = {300, 300, 255, 255, 0};
+	// // Polygon_2d poly;
+	// // poly.push_back(p1);
+	// // poly.push_back(pa);
+	// // poly.push_back(p2);
+	// // poly.push_back(p3);
+	// // poly.push_back(p4);
+	// // poly.push_back(p0);
+	// Polygon_2d poly = rand_polygon({FRAME_WIDE / 2, FRAME_HIGH / 2, 0, 0, 0}, M_PI / 2);
+	// fill_poly(poly, pFrame);
+	// //draw_pixel_2d(poly[counter = (counter + 1) % poly.size()], pFrame);
+	// //draw_poly(poly, pFrame);
 
 	// ----------- VJS LOAD TEST --------//
 
