@@ -227,13 +227,11 @@ void fill_poly(Polygon_2d poly, BYTE *fBuffer)
 	Polygon_2d neighbours = poly;
 	int tri_count = 0;
 	std::sort(poly.begin(), poly.end(), left); // order on points' x vals
-	// The loop wraps around the array multiple times until n-2 triangles have been drawn.
-	// This is so that concave points may be reattempted later.
 	for (int i = 0; tri_count < poly.size() - 2; i++) {
+		if (i == 0)
+			poly = neighbours; // Dump points that have already been drawn
 		int wrap = i % poly.size();
 		int current = find_point(neighbours, poly[wrap]);
-		if (current == -1)
-			continue;
 		int next_adjacent = current == neighbours.size() - 1 ? 0 : current + 1;
 		int prev_adjacent = current == 0 ? neighbours.size() - 1 : current - 1;
 		Polygon_2d tri = {
