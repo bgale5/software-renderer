@@ -206,7 +206,10 @@ void BuildFrame(BYTE *pFrame, int view)
 	// triangle.push_back(p2);
 
 	// fill_tri(triangle, pFrame);
-	// //draw_tri(triangle, pFrame);
+	// triangle[0] = {p0.x, p0.y, 255, 255, 255};
+	// triangle[1] = {p1.x, p1.y, 255, 255, 255};
+	// triangle[2] = {p2.x, p2.y, 255, 255, 255};
+	// draw_tri(triangle, pFrame);
 
 	// ------- COMPLEX POLY TEST ----- //
 
@@ -236,7 +239,7 @@ void BuildFrame(BYTE *pFrame, int view)
 	// ----------- VJS LOAD TEST --------//
 
 	if (!loaded) {
-		load_vjs("test.vjs", temp);
+		load_vjs("cube.vjs", temp);
 		loaded = true;
 	}
 	printf("Loaded object:\n");
@@ -250,20 +253,8 @@ void BuildFrame(BYTE *pFrame, int view)
 		Polygon_3d polygon = temp.polys[i];
 		printf("(%d, %d, %d, %d)\n", polygon[0], polygon[1], polygon[2], polygon[3]);
 	}
-	draw_object_3d(temp, pFrame);
+	//draw_object_3d(temp, pFrame);
 	draw_wireframe_3d(temp, pFrame);
 
-	// Point_2d p0 = {100, 100, 255, 0, 0};
-	// Point_2d p1 = {150, 500, 0, 255, 0};
-	// Point_2d p2 = {500, 450, 0, 0, 255};
-	// Point_2d p3 = {700, 100, 255, 255, 255};
-	// Polygon_2d pol;
-	// pol.push_back(p0);
-	// pol.push_back(p1);
-	// pol.push_back(p2);
-	// pol.push_back(p3);
-	// fill_poly(pol, pFrame);
-	// draw_poly(pol, pFrame);
-	
-	//sleep(1);
+	sleep(1);
 }

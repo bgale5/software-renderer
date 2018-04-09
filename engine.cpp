@@ -160,7 +160,7 @@ void draw_object_3d(const Object &obj, BYTE *fBuffer)
 	project_polygon(obj, projected_polys); // Populates projected_polys
 	for (int i = 0; i < projected_polys.size(); i++) {
 		fill_poly(projected_polys[i], fBuffer);
-		//draw_poly(projected_polys[i], fBuffer);
+		draw_poly(projected_polys[i], fBuffer);
 	}
 }
 
@@ -214,8 +214,8 @@ void fill_poly(const Polygon_2d &poly, BYTE *fBuffer)
 		};
 		if (!points_inside(tri, poly)
 				&& convex(neighbours[current], neighbours[prev_adjacent], neighbours[next_adjacent])) {
-			fill_tri(tri, fBuffer);
-			//draw_tri(tri, fBuffer);
+			//fill_tri(tri, fBuffer);
+			draw_tri(tri, fBuffer);
 			neighbours.erase(neighbours.begin()+current);
 		}
 	}
