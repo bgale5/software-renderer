@@ -427,12 +427,23 @@ void translate(Direction d, double offset)
 		case RIGHT: x_offset 	+= offset; 	break;
 		case IN: 	z_offset 	+= offset; 	break;
 		case OUT: 	z_offset 	-= offset; 	break;
-		case SCALE: scale_offset += offset; break;
+		case SCALE_UP: scale_offset += offset; break;
+		case SCALE_DOWN: scale_offset -= offset; break;
 	}
 	for (int i = 0; i < translatable.size(); i++) {
 		translatable[i]->properties.centre.x += x_offset;
 		translatable[i]->properties.centre.y += y_offset;
 		translatable[i]->properties.centre.z += z_offset;
 		translatable[i]->properties.scale	+= scale_offset;
+	}
+}
+
+void centre()
+{
+	for (int i = 0; i < translatable.size(); i++) {
+		translatable[i]->properties.centre.x = FRAME_WIDE / 2;
+		translatable[i]->properties.centre.y = FRAME_HIGH / 2;
+		translatable[i]->properties.centre.z = 0;
+		translatable[i]->properties.scale = 1;
 	}
 }

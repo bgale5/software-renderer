@@ -131,6 +131,11 @@ void OnKeypress(unsigned char key, int x, int y)
 	case 'k': translate(UP, TRANSLATION_FACTOR); break;
 	case 'h': translate(LEFT, TRANSLATION_FACTOR); break;
 	case 'l': translate(RIGHT, TRANSLATION_FACTOR); break;
+	case 'i': translate(IN, TRANSLATION_FACTOR); break;
+	case 'o': translate(OUT, TRANSLATION_FACTOR); break;
+	case '=': translate(SCALE_UP, TRANSLATION_FACTOR / 100.0); break;
+	case '-': translate(SCALE_DOWN, TRANSLATION_FACTOR / 100.0); break;
+	case 'c': centre();
 	}
 	PlaySoundEffect("Whoosh.wav"); 
 }
