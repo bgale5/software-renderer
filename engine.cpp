@@ -13,6 +13,10 @@
 #include <algorithm>
 #include <cmath>
 
+/*======================= Global Variables  ================================= */
+
+std::vector<Object*> translatable;
+
 /*======================= Drawing Functions ================================= */
 void draw_pixel_2d(const Point_2d &point, BYTE *fBuffer)
 {
@@ -154,10 +158,24 @@ void draw_poly(const Polygon_2d &poly, BYTE *fBuffer)
 	clip_line(poly[vc - 1], poly[0], fBuffer);
 }
 
+Object rel_to_abs(const Object &rel)
+{
+	Object absolute = rel;
+	double scale = rel.properties.scale;
+	Point_3d centre = rel.properties.centre;
+	for (int i = 0; i < absolute.vertex_count; i++) {
+		absolute.vertices[i].x = absolute.vertices[i].x * scale + centre.x;
+		absolute.vertices[i].y = absolute.vertices[i].y * scale + centre.y;
+		absolute.vertices[i].z = absolute.vertices[i].z * scale + centre.z;
+	}
+	return absolute;
+}
+
 void draw_object_3d(const Object &obj, BYTE *fBuffer)
 {
 	std::vector<Polygon_2d> projected_polys;
-	project_polygon(obj, projected_polys); // Populates projected_polys
+	Object absolute = rel_to_abs(obj);
+	project_polygon(absolute, projected_polys); // Populates projected_polys
 	for (int i = 0; i < projected_polys.size(); i++) {
 		fill_poly(projected_polys[i], fBuffer);
 		draw_poly(projected_polys[i], fBuffer);
@@ -167,7 +185,8 @@ void draw_object_3d(const Object &obj, BYTE *fBuffer)
 void draw_wireframe_3d(const Object &obj, BYTE *fBuffer)
 {
 	std::vector<Polygon_2d> polys;
-	project_polygon(obj, polys);
+	Object absolute = rel_to_abs(obj);
+	project_polygon(absolute, polys);
 	for (int i = 0; i < obj.poly_count; i++) {
 		for (int j = 0; j < polys[i].size(); j++) {
 			polys[i][j].r = 255;
@@ -370,7 +389,7 @@ Polygon_3d toks_to_poly3d(std::vector<std::string> &toks)
 	return poly;
 }
 
-void load_vjs(std::string fpath, Object &obj)
+void load_vjs(std::string fpath, Object &obj, const Object_attribs &properties)
 {
 	std::ifstream infile(fpath);
 	std::string linebuffer;
@@ -391,5 +410,29 @@ void load_vjs(std::string fpath, Object &obj)
 		toks = tokenize(linebuffer, ' ');
 		Polygon_3d poly = toks_to_poly3d(toks);
 		obj.polys.push_back(poly);
+	}
+	obj.properties = properties;
+}
+
+void translate(Direction d, double offset)
+{
+	double x_offset = 0;
+	double y_offset = 0;
+	double z_offset = 0;
+	double scale_offset = 0;
+	switch (d) {
+		case UP: 	y_offset 	-= offset; 	break;
+		case DOWN: 	y_offset 	+= offset; 	break;
+		case LEFT: 	x_offset 	-= offset; 	break;
+		case RIGHT: x_offset 	+= offset; 	break;
+		case IN: 	z_offset 	+= offset; 	break;
+		case OUT: 	z_offset 	-= offset; 	break;
+		case SCALE: scale_offset += offset; break;
+	}
+	for (int i = 0; i < translatable.size(); i++) {
+		translatable[i]->properties.centre.x += x_offset;
+		translatable[i]->properties.centre.y += y_offset;
+		translatable[i]->properties.centre.z += z_offset;
+		translatable[i]->properties.scale	+= scale_offset;
 	}
 }

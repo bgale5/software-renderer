@@ -126,7 +126,11 @@ void OnKeypress(unsigned char key, int x, int y)
 	case 's': stereo ^= 1, eyes = 10;break;
 	case ']': eyes++;	break;
 	case '[': eyes--;	break;
-	case 27 : exit(0);
+	case 27 : exit(0); break;
+	case 'j': translate(DOWN, TRANSLATION_FACTOR); break;
+	case 'k': translate(UP, TRANSLATION_FACTOR); break;
+	case 'h': translate(LEFT, TRANSLATION_FACTOR); break;
+	case 'l': translate(RIGHT, TRANSLATION_FACTOR); break;
 	}
 	PlaySoundEffect("Whoosh.wav"); 
 }
@@ -239,8 +243,12 @@ void BuildFrame(BYTE *pFrame, int view)
 	// ----------- VJS LOAD TEST --------//
 
 	if (!loaded) {
-		load_vjs("cube.vjs", temp);
+		Object_attribs temp_properties;
+		temp_properties.scale = 1;
+		temp_properties.centre = {300, 350, 100, 0, 0, 0};
+		load_vjs("cube.vjs", temp, temp_properties);
 		loaded = true;
+		translatable.push_back(&temp);
 	}
 	printf("Loaded object:\n");
 	printf("Vertices:\n");
@@ -253,8 +261,9 @@ void BuildFrame(BYTE *pFrame, int view)
 		Polygon_3d polygon = temp.polys[i];
 		printf("(%d, %d, %d, %d)\n", polygon[0], polygon[1], polygon[2], polygon[3]);
 	}
-	//draw_object_3d(temp, pFrame);
-	draw_wireframe_3d(temp, pFrame);
 
-	sleep(1);
+	//draw_object_3d(temp, pFrame);
+	//translate(UP, 100);
+	draw_wireframe_3d(temp, pFrame);
+	//leep(1);
 }

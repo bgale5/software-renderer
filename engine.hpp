@@ -17,6 +17,7 @@
 #define MaxNumPts 20//600
 #define MaxNumPolys 20//900
 #define NumSidesPoly 20 //600
+#define TRANSLATION_FACTOR 10
 
 //====== Structs & typedefs =========
 typedef unsigned char BYTE;
@@ -35,7 +36,8 @@ typedef std::vector<Point_2d> Polygon_2d;
 typedef std::vector<int> Polygon_3d;
 
 typedef struct object_attribs {
-	Point_3d center, scale;
+	Point_3d centre;
+	double scale;
 } Object_attribs;
 
 typedef struct object {
@@ -44,6 +46,18 @@ typedef struct object {
 	std::vector<Polygon_3d> polys;
 	std::vector<Point_3d> vertices;
 } Object;
+
+enum Direction {
+	LEFT,
+	RIGHT,
+	UP,
+	DOWN,
+	IN,
+	OUT, 
+	SCALE
+};
+
+extern std::vector<Object*> translatable;
 
 //====== Forward Declarations=========
 
@@ -71,4 +85,5 @@ bool collinear(const Polygon_2d &tri);
 void fill_tri(Polygon_2d &triangle, BYTE *fBuffer);
 Point_2d rand_point();
 void sort_vertices(Polygon_2d &triangle);
-void load_vjs(std::string fpath, Object &obj);
+void load_vjs(std::string fpath, Object &obj, const Object_attribs &properties);
+void translate(Direction d, double offset);
