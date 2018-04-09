@@ -178,7 +178,7 @@ void draw_object_3d(const Object &obj, BYTE *fBuffer)
 	project_polygon(absolute, projected_polys); // Populates projected_polys
 	for (int i = 0; i < projected_polys.size(); i++) {
 		fill_poly(projected_polys[i], fBuffer);
-		draw_poly(projected_polys[i], fBuffer);
+		//draw_poly(projected_polys[i], fBuffer);
 	}
 }
 
@@ -209,8 +209,9 @@ bool point_cmp(const Point_2d &a, const Point_2d &b)
 	);
 }
 
-int find_point(const Polygon_2d &neighbours, const Point_2d &point) // NOTE: Assumes that points are unique
+int find_point(const Polygon_2d &neighbours, const Point_2d &point)
 {
+	// NOTE: Assumes that points are unique
 	for (int i = 0; i < neighbours.size(); i++) {
 		if (point_cmp(point, neighbours[i]))
 			return i;
@@ -218,12 +219,21 @@ int find_point(const Polygon_2d &neighbours, const Point_2d &point) // NOTE: Ass
 	return -1;
 }
 
-void fill_poly(const Polygon_2d &poly, BYTE *fBuffer)
+//comparison for the quicksort in fill_poly
+bool left(Point_2d i, Point_2d j){ return i.x < j.x; }
+
+void fill_poly(Polygon_2d poly, BYTE *fBuffer)
 {
 	Polygon_2d neighbours = poly;
-	int vc = poly.size();
-	for (int i = 0; i < vc; i++) {
-		int current = find_point(neighbours, poly[i]);
+	int tri_count = 0;
+	std::sort(poly.begin(), poly.end(), left); // order on points' x vals
+	// The loop wraps around the array multiple times until n-2 triangles have been drawn.
+	// This is so that concave points may be reattempted later.
+	for (int i = 0; tri_count < poly.size() - 2; i++) {
+		int wrap = i % poly.size();
+		int current = find_point(neighbours, poly[wrap]);
+		if (current == -1)
+			continue;
 		int next_adjacent = current == neighbours.size() - 1 ? 0 : current + 1;
 		int prev_adjacent = current == 0 ? neighbours.size() - 1 : current - 1;
 		Polygon_2d tri = {
@@ -231,17 +241,15 @@ void fill_poly(const Polygon_2d &poly, BYTE *fBuffer)
 			neighbours[next_adjacent],
 			neighbours[prev_adjacent]
 		};
-		if (!points_inside(tri, poly)
-				&& convex(neighbours[current], neighbours[prev_adjacent], neighbours[next_adjacent])) {
-			//fill_tri(tri, fBuffer);
-			draw_tri(tri, fBuffer);
-			neighbours.erase(neighbours.begin()+current);
+		if (points_inside(tri, poly) ||
+		!convex(neighbours[current], neighbours[prev_adjacent], neighbours[next_adjacent])) {
+			continue;
 		}
+		fill_tri(tri, fBuffer);
+		//draw_tri(tri, fBuffer);
+		neighbours.erase(neighbours.begin()+current);
+		tri_count++;
 	}
-	// if (neighbours.size() >= 3) {
-	// 	Polygon_2d test = neighbours;
-	// 	fill_poly(test, fBuffer);
-	// }
 }
 
 // Test to see if p0 is on the left/right side of p2 --> p1 edge.
