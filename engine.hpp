@@ -88,7 +88,7 @@ Point_2d rand_point();
 void sort_vertices(Polygon_2d &triangle);
 void load_vjs(std::string fpath, Object &obj, const Object_attribs &properties);
 void translate_3d(Direction d, double offset);
-void centre();
+void centre_3d();
 Polygon_2d rand_polygon(const Point_2d &centre, double angle_increment);
 void rotate_2d(Polygon_2d &poly, const Point_2d &about, double angle);
 void translate_2d(Polygon_2d &poly, const Point_2d &offset);

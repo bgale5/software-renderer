@@ -135,7 +135,7 @@ void OnKeypress(unsigned char key, int x, int y)
 	case 'o': translate_3d(OUT, TRANSLATION_FACTOR); break;
 	case '=': translate_3d(SCALE_UP, TRANSLATION_FACTOR / 100.0); break;
 	case '-': translate_3d(SCALE_DOWN, TRANSLATION_FACTOR / 100.0); break;
-	case 'c': centre();
+	case 'c': centre_3d(); break;
 	}
 	//PlaySoundEffect("Whoosh.wav"); 
 }
@@ -197,11 +197,8 @@ void	PlaySoundEffect(char * filename)
 bool loaded = false;
 Object temp;
 int counter = 0;
-Point_2d p0 = rand_point();
-Point_2d p2 = rand_point();
-Point_2d p1 = rand_point();
 Polygon_2d triangle;
-
+Point_2d centre;
 void BuildFrame(BYTE *pFrame, int view)
 {
 	//  ------ CLIP LINE TEST ----- //
@@ -211,22 +208,25 @@ void BuildFrame(BYTE *pFrame, int view)
 	// clip_line(p0, p1, pFrame);
 
 	// ----- FILL TRIANGLE TEST ----- //
-	if (!loaded) {
-		triangle.push_back(p0);
-		triangle.push_back(p1);
-		triangle.push_back(p2);
-		loaded = true;
-	}
-	double angle = (2 * M_PI * (counter / 360.0));
-	//fill_tri(triangle, pFrame);
-	draw_tri(triangle, pFrame);
-	rotate_2d(triangle, {FRAME_WIDE / 2, FRAME_HIGH / 2, 0, 0, 0}, angle);
-	counter = (counter + 1) % 360;
-	draw_pixel_2d({FRAME_WIDE / 2, FRAME_HIGH / 2, 255, 255, 255}, pFrame);
+	// if (!loaded) {
+	// 	Point_2d p0 = {500, 200, 255, 0, 0};
+	// 	Point_2d p2 = {400, 400, 0, 255, 0};
+	// 	Point_2d p1 = {600, 400, 0, 0, 255};
+	// 	Point_2d centre;
+	// 	centre = {500, 300, 0, 0, 0};
+	// 	triangle.push_back(p0);
+	// 	triangle.push_back(p1);
+	// 	triangle.push_back(p2);
+	// 	loaded = true;
+	// }
+	// double angle = (2 * M_PI * (counter / 360.0));
+	// //fill_tri(triangle, pFrame);
+	// draw_tri(triangle, pFrame);
+	// rotate_2d(triangle, centre, angle);
+	// counter = (counter + 1) % 360;
+	// draw_pixel_2d(centre, pFrame);
 
 	// -------  POLY TEST ----- //
-
-	
 
 	// // Point_2d p0 = {100, 100, 255, 255, 255};
 	// // Point_2d p1 = {100, 500, 255, 0, 0};
@@ -241,35 +241,35 @@ void BuildFrame(BYTE *pFrame, int view)
 	// // poly.push_back(p3);
 	// // poly.push_back(p4);
 	// // poly.push_back(p0);
-	// Polygon_2d poly = rand_polygon({FRAME_WIDE / 2, FRAME_HIGH / 2, 0, 0, 0}, M_PI / 2);
+	// Polygon_2d poly = rand_polygon({FRAME_WIDE / 2, FRAME_HIGH / 2, 0, 0, 0}, M_PI / 3);
 	// fill_poly(poly, pFrame);
 	// //draw_pixel_2d(poly[counter = (counter + 1) % poly.size()], pFrame);
 	// //draw_poly(poly, pFrame);
 
 	// ----------- VJS LOAD TEST --------//
 
-	// if (!loaded) {
-	// 	Object_attribs temp_properties;
-	// 	temp_properties.scale = 1;
-	// 	temp_properties.centre = {300, 350, 100, 0, 0, 0};
-	// 	load_vjs("cube.vjs", temp, temp_properties);
-	// 	loaded = true;
-	// 	translatable.push_back(&temp);
-	// }
-	// printf("Loaded object:\n");
-	// printf("Vertices:\n");
-	// for (int i = 0; i < temp.vertex_count; i++) {
-	// 	Point_3d vert = temp.vertices[i];
-	// 	printf("(%d, %d, %d, %d, %d, %d)\n", (int)vert.x, (int)vert.y, (int)vert.z, (BYTE)vert.r, (BYTE)vert.g, (BYTE)vert.b);
-	// }
-	// printf("Polygons:\n");
-	// for (int i = 0; i < temp.poly_count; i++) {
-	// 	Polygon_3d polygon = temp.polys[i];
-	// 	printf("(%d, %d, %d, %d)\n", polygon[0], polygon[1], polygon[2], polygon[3]);
-	// }
+	if (!loaded) {
+		Object_attribs temp_properties;
+		temp_properties.scale = 1;
+		temp_properties.centre = {300, 350, 100, 0, 0, 0};
+		load_vjs("cube.vjs", temp, temp_properties);
+		loaded = true;
+		translatable.push_back(&temp);
+	}
+	printf("Loaded object:\n");
+	printf("Vertices:\n");
+	for (int i = 0; i < temp.vertex_count; i++) {
+		Point_3d vert = temp.vertices[i];
+		printf("(%d, %d, %d, %d, %d, %d)\n", (int)vert.x, (int)vert.y, (int)vert.z, (BYTE)vert.r, (BYTE)vert.g, (BYTE)vert.b);
+	}
+	printf("Polygons:\n");
+	for (int i = 0; i < temp.poly_count; i++) {
+		Polygon_3d polygon = temp.polys[i];
+		printf("(%d, %d, %d, %d)\n", polygon[0], polygon[1], polygon[2], polygon[3]);
+	}
 
-	// draw_object_3d(temp, pFrame);
-	// //draw_wireframe_3d(temp, pFrame);
+	draw_object_3d(temp, pFrame);
+	draw_wireframe_3d(temp, pFrame);
 	
-	sleep(1);
+	//sleep(1);
 }

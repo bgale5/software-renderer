@@ -22,9 +22,9 @@ void draw_pixel_2d(const Point_2d &point, BYTE *fBuffer)
 {
 	int x =  ROUND(point.x);
 	int y =  ROUND(point.y);
-	BYTE r = ROUND(point.r);
-	BYTE g = ROUND(point.g);
-	BYTE b = ROUND(point.b);
+	BYTE r = floor(point.r);
+	BYTE g = floor(point.g);
+	BYTE b = floor(point.b);
 	if (x < 0 || x > FRAME_WIDE - 1 || y < 0 || y > FRAME_HIGH - 1) {
 		printf("Warning: point falls out of bounds!\n");
 		return;
@@ -227,11 +227,14 @@ void fill_poly(Polygon_2d poly, BYTE *fBuffer)
 	Polygon_2d neighbours = poly;
 	Polygon_2d original = poly;
 	int tri_count = 0;
-	std::sort(poly.begin(), poly.end(), left); // order on points' x vals
+	//std::sort(poly.begin(), poly.end(), left); // order on points' x vals
 	for (int i = 0; tri_count < poly.size() - 2; i++) {
-		int wrap = i % poly.size();
-		if (wrap == 0)
+		if (i % poly.size() == 0 && i > 0) {
+			if (poly.size() == neighbours.size())
+				break; // in case all angles concave, eg. when plane is flipped
 			poly = neighbours;
+		}
+		int wrap = i % poly.size();
 		int current = find_point(neighbours, poly[wrap]);
 		int next_adjacent = current == neighbours.size() - 1 ? 0 : current + 1;
 		int prev_adjacent = current == 0 ? neighbours.size() - 1 : current - 1;
@@ -241,11 +244,11 @@ void fill_poly(Polygon_2d poly, BYTE *fBuffer)
 			neighbours[prev_adjacent]
 		};
 		if (points_inside(tri, original) ||
-		!convex(neighbours[current], neighbours[prev_adjacent], neighbours[next_adjacent])) {
+		convex(neighbours[current], neighbours[prev_adjacent], neighbours[next_adjacent])) {
 			continue;
 		}
-		fill_tri(tri, fBuffer);
-		//draw_tri(tri, fBuffer);
+		//fill_tri(tri, fBuffer);
+		draw_tri(tri, fBuffer);
 		neighbours.erase(neighbours.begin()+current);
 		tri_count++;
 	}
@@ -372,7 +375,7 @@ Polygon_2d rand_polygon(const Point_2d &centre, double angle_increment)
 		Point_2d point = {centre.x + x, centre.y + y, r, g, b};
 		poly.push_back(point);
 	}
-	std::reverse(poly.begin(), poly.end()); // make it CCW TODO: make it CCW in first place
+	//std::reverse(poly.begin(), poly.end()); // make it CCW TODO: make it CCW in first place
 	return poly;
 }
 
@@ -485,16 +488,16 @@ void translate_2d(Polygon_2d &poly, const Point_2d &offset)
 void rotate_2d(Polygon_2d &poly, const Point_2d &about, double angle)
 {
 	for (int i = 0; i < poly.size(); i++) {
-		double x = poly[i].x - about.x; // translate to origin 
-		double y = poly[i].y - about.y; // translate to origin
-		double x_prime = x * cos(angle) - y * sin(angle);
-		double y_prime = y * cos(angle) + x * sin(angle);
-		poly[i].x = x_prime + about.x; // reverse the translation
-		poly[i].y = y_prime + about.y; // reverse the translation
+		double x = poly[i].x; // translate to origin 
+		double y = poly[i].y; // translate to origin
+		double new_x = about.x + ( (x - about.x) * cos(angle) - (y - about.y) * sin(angle) );
+		double new_y = about.y + ( (x - about.x) * sin(angle) + (y - about.y) * cos(angle) );
+		poly[i].x = new_x;
+		poly[i].y = new_y;
 	}
 }
 
-void centre()
+void centre_3d()
 {
 	for (int i = 0; i < translatable.size(); i++) {
 		translatable[i]->properties.centre.x = FRAME_WIDE / 2;
