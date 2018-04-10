@@ -450,7 +450,7 @@ void load_vjs(std::string fpath, Object &obj, const Object_attribs &properties)
 	obj.properties = properties;
 }
 
-void translate(Direction d, double offset)
+void translate_3d(Direction d, double offset)
 {
 	double x_offset = 0;
 	double y_offset = 0;
@@ -471,6 +471,26 @@ void translate(Direction d, double offset)
 		translatable[i]->properties.centre.y += y_offset;
 		translatable[i]->properties.centre.z += z_offset;
 		translatable[i]->properties.scale	+= scale_offset;
+	}
+}
+
+void translate_2d(Polygon_2d &poly, const Point_2d &offset)
+{
+	for (int i = 0; i < poly.size(); i++) {
+		poly[i].x += offset.x;
+		poly[i].y += offset.y;
+	}
+}
+
+void rotate_2d(Polygon_2d &poly, const Point_2d &about, double angle)
+{
+	for (int i = 0; i < poly.size(); i++) {
+		double x = poly[i].x - about.x; // translate to origin 
+		double y = poly[i].y - about.y; // translate to origin
+		double x_prime = x * cos(angle) - y * sin(angle);
+		double y_prime = y * cos(angle) + x * sin(angle);
+		poly[i].x = x_prime + about.x; // reverse the translation
+		poly[i].y = y_prime + about.y; // reverse the translation
 	}
 }
 

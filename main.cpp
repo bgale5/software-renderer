@@ -127,14 +127,14 @@ void OnKeypress(unsigned char key, int x, int y)
 	case ']': eyes++;	break;
 	case '[': eyes--;	break;
 	case 27 : exit(0); break;
-	case 'j': translate(DOWN, TRANSLATION_FACTOR); break;
-	case 'k': translate(UP, TRANSLATION_FACTOR); break;
-	case 'h': translate(LEFT, TRANSLATION_FACTOR); break;
-	case 'l': translate(RIGHT, TRANSLATION_FACTOR); break;
-	case 'i': translate(IN, TRANSLATION_FACTOR); break;
-	case 'o': translate(OUT, TRANSLATION_FACTOR); break;
-	case '=': translate(SCALE_UP, TRANSLATION_FACTOR / 100.0); break;
-	case '-': translate(SCALE_DOWN, TRANSLATION_FACTOR / 100.0); break;
+	case 'j': translate_3d(DOWN, TRANSLATION_FACTOR); break;
+	case 'k': translate_3d(UP, TRANSLATION_FACTOR); break;
+	case 'h': translate_3d(LEFT, TRANSLATION_FACTOR); break;
+	case 'l': translate_3d(RIGHT, TRANSLATION_FACTOR); break;
+	case 'i': translate_3d(IN, TRANSLATION_FACTOR); break;
+	case 'o': translate_3d(OUT, TRANSLATION_FACTOR); break;
+	case '=': translate_3d(SCALE_UP, TRANSLATION_FACTOR / 100.0); break;
+	case '-': translate_3d(SCALE_DOWN, TRANSLATION_FACTOR / 100.0); break;
 	case 'c': centre();
 	}
 	//PlaySoundEffect("Whoosh.wav"); 
@@ -197,6 +197,10 @@ void	PlaySoundEffect(char * filename)
 bool loaded = false;
 Object temp;
 int counter = 0;
+Point_2d p0 = rand_point();
+Point_2d p2 = rand_point();
+Point_2d p1 = rand_point();
+Polygon_2d triangle;
 
 void BuildFrame(BYTE *pFrame, int view)
 {
@@ -207,16 +211,18 @@ void BuildFrame(BYTE *pFrame, int view)
 	// clip_line(p0, p1, pFrame);
 
 	// ----- FILL TRIANGLE TEST ----- //
-
-	Point_2d p0 = rand_point();
-	Point_2d p2 = rand_point();
-	Point_2d p1 = rand_point();
-	Polygon_2d triangle;
-	triangle.push_back(p0);
-	triangle.push_back(p1);
-	triangle.push_back(p2);
-
-	fill_tri(triangle, pFrame);
+	if (!loaded) {
+		triangle.push_back(p0);
+		triangle.push_back(p1);
+		triangle.push_back(p2);
+		loaded = true;
+	}
+	double angle = (2 * M_PI * (counter / 360.0));
+	//fill_tri(triangle, pFrame);
+	draw_tri(triangle, pFrame);
+	rotate_2d(triangle, {FRAME_WIDE / 2, FRAME_HIGH / 2, 0, 0, 0}, angle);
+	counter = (counter + 1) % 360;
+	draw_pixel_2d({FRAME_WIDE / 2, FRAME_HIGH / 2, 255, 255, 255}, pFrame);
 
 	// -------  POLY TEST ----- //
 
