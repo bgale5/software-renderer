@@ -355,7 +355,7 @@ Polygon_2d rand_polygon(const Point_2d &centre, double angle_increment)
 	Polygon_2d poly;
 	double mag, x, y, r, g, b;
 	for(double theta = 0; theta < 2 * M_PI; theta += angle_increment) {
-		mag = rand() % 250;
+		mag = 100 + rand() % 150;
 		if (theta <= M_PI / 2.0) {
 			x = mag * cos(theta);
 			y = mag * sin(theta);

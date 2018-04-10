@@ -243,6 +243,7 @@ void BuildFrame(BYTE *pFrame, int view)
 	// // poly.push_back(p0);
 	// Polygon_2d poly = rand_polygon({FRAME_WIDE / 2, FRAME_HIGH / 2, 0, 0, 0}, M_PI / 3);
 	// fill_poly(poly, pFrame);
+	// //draw_poly(poly, pFrame);
 	// //draw_pixel_2d(poly[counter = (counter + 1) % poly.size()], pFrame);
 	// //draw_poly(poly, pFrame);
 
@@ -271,5 +272,5 @@ void BuildFrame(BYTE *pFrame, int view)
 	draw_object_3d(temp, pFrame);
 	draw_wireframe_3d(temp, pFrame);
 	
-	//sleep(1);
+	//sleep(2);
 }
