@@ -78,7 +78,7 @@ void draw_wireframe_3d(const struct object &obj, BYTE *fBuffer);
 bool point_cmp(const Point_2d &a, const Point_2d &b);
 int find_point(const Polygon_2d &neighbours, const Point_2d &point);
 void fill_poly(Polygon_2d poly, BYTE *fBuffer);
-bool convex(const Point_2d &p2, const Point_2d &p1, const Point_2d &p0);
+bool concave(const Point_2d &p2, const Point_2d &p1, const Point_2d &p0);
 bool points_inside(const Polygon_2d &tri, const Polygon_2d &poly);
 bool inside(const Polygon_2d &tri, const Point_2d &pt);
 bool same_side(const Point_2d &a, const Point_2d &b, const Point_2d &l1, const Point_2d &l2);

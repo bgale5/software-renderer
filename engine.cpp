@@ -244,7 +244,7 @@ void fill_poly(Polygon_2d poly, BYTE *fBuffer)
 			neighbours[prev_adjacent]
 		};
 		if (points_inside(tri, original) ||
-		convex(neighbours[current], neighbours[prev_adjacent], neighbours[next_adjacent])) {
+		concave(neighbours[current], neighbours[prev_adjacent], neighbours[next_adjacent])) {
 			continue;
 		}
 		//fill_tri(tri, fBuffer);
@@ -255,7 +255,7 @@ void fill_poly(Polygon_2d poly, BYTE *fBuffer)
 }
 
 // Test to see if p0 is on the left/right side of p2 --> p1 edge.
-bool convex(const Point_2d &p2, const Point_2d &p1, const Point_2d &p0)
+bool concave(const Point_2d &p2, const Point_2d &p1, const Point_2d &p0)
 {
     return ((p2.x - p1.x) * (p0.y - p1.y) - (p2.y - p1.y) * (p0.x - p1.x)) < 0;
 }
