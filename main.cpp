@@ -197,7 +197,6 @@ void	PlaySoundEffect(char * filename)
 bool loaded = false;
 Object temp;
 int counter = 0;
-Polygon_2d triangle;
 Point_2d centre;
 void BuildFrame(BYTE *pFrame, int view)
 {
@@ -209,22 +208,26 @@ void BuildFrame(BYTE *pFrame, int view)
 
 	// ----- FILL TRIANGLE TEST ----- //
 	// if (!loaded) {
-	// 	Point_2d p0 = {500, 200, 255, 0, 0};
-	// 	Point_2d p2 = {400, 400, 0, 255, 0};
-	// 	Point_2d p1 = {600, 400, 0, 0, 255};
-	// 	Point_2d centre;
-	// 	centre = {500, 300, 0, 0, 0};
-	// 	triangle.push_back(p0);
-	// 	triangle.push_back(p1);
-	// 	triangle.push_back(p2);
+
 	// 	loaded = true;
 	// }
-	// double angle = (2 * M_PI * (counter / 360.0));
+	// Polygon_2d triangle;
+	// Polygon_2d triangle2;
+	// Point_2d p0 = rand_point();
+	// Point_2d p2 = rand_point();
+	// Point_2d p1 = rand_point();
+	// Point_2d p3 = rand_point();
+	// Point_2d p4 = rand_point();
+	// Point_2d p5 = rand_point();
+	// triangle.push_back(p0);
+	// triangle.push_back(p1);
+	// triangle.push_back(p2);
+	// triangle2.push_back(p3);
+	// triangle2.push_back(p4);
+	// triangle2.push_back(p5);
 	// //fill_tri(triangle, pFrame);
-	// draw_tri(triangle, pFrame);
-	// rotate_2d(triangle, centre, angle);
-	// counter = (counter + 1) % 360;
-	// draw_pixel_2d(centre, pFrame);
+	// fill_tri(triangle, pFrame);
+	// fill_tri(triangle2, pFrame);
 
 	// -------  POLY TEST ----- //
 
@@ -272,5 +275,5 @@ void BuildFrame(BYTE *pFrame, int view)
 	draw_object_3d(temp, pFrame);
 	draw_wireframe_3d(temp, pFrame);
 	
-	//sleep(2);
+	//sleep(1);
 }

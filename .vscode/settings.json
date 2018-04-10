@@ -14,6 +14,9 @@
         "iterator": "cpp",
         "chrono": "cpp",
         "__split_buffer": "cpp",
-        "vector": "cpp"
+        "vector": "cpp",
+        "__bit_reference": "cpp",
+        "ios": "cpp",
+        "string_view": "cpp"
     }
 }

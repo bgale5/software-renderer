@@ -22,9 +22,9 @@ void draw_pixel_2d(const Point_2d &point, BYTE *fBuffer)
 {
 	int x =  ROUND(point.x);
 	int y =  ROUND(point.y);
-	BYTE r = floor(point.r);
-	BYTE g = floor(point.g);
-	BYTE b = floor(point.b);
+	BYTE r = ROUND(point.r);
+	BYTE g = ROUND(point.g);
+	BYTE b = ROUND(point.b);
 	if (x < 0 || x > FRAME_WIDE - 1 || y < 0 || y > FRAME_HIGH - 1) {
 		printf("Warning: point falls out of bounds!\n");
 		return;
@@ -247,8 +247,8 @@ void fill_poly(Polygon_2d poly, BYTE *fBuffer)
 		concave(neighbours[current], neighbours[prev_adjacent], neighbours[next_adjacent])) {
 			continue;
 		}
-		//fill_tri(tri, fBuffer);
-		draw_tri(tri, fBuffer);
+		fill_tri(tri, fBuffer);
+		//draw_tri(tri, fBuffer);
 		neighbours.erase(neighbours.begin()+current);
 		tri_count++;
 	}
@@ -307,10 +307,22 @@ Point_2d point_gradient(const Point_2d &p1, const Point_2d &p2)
 	return gradient;
 }
 
+void round_vertices(Polygon_2d &poly)
+{
+	for (int i = 0; i < poly.size(); i++) {
+		poly[i].x = (double)ROUND(poly[i].x);
+		poly[i].y = (double)ROUND(poly[i].y);
+		poly[i].r = (double)ROUND(poly[i].r);
+		poly[i].g = (double)ROUND(poly[i].g);
+		poly[i].b = (double)ROUND(poly[i].b);
+	}
+}
+
 //TODO: Refactor, get rid of all the local variables?
 //TODO: Fix colour overflow bug
-void fill_tri(Polygon_2d &triangle, BYTE *fBuffer)
+void fill_tri(Polygon_2d triangle, BYTE *fBuffer)
 {
+	round_vertices(triangle);
 	sort_vertices(triangle);
 	if (collinear(triangle)) {
 		clip_line(triangle[0], triangle[1], fBuffer);
