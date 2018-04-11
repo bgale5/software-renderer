@@ -21,6 +21,7 @@
 //====== Global Variables ==========
 BYTE	pFrameL[FRAME_WIDE * FRAME_HIGH * 3];
 BYTE	pFrameR[FRAME_WIDE * FRAME_HIGH * 3];
+short zBuffer[FRAME_WIDE * FRAME_HIGH] = {SHRT_MAX};
 int		shade = 0;
 point_2d	xypos = {0,0};
 int		stereo = 0;
@@ -155,6 +156,7 @@ void OnKeypress(unsigned char key, int x, int y)
 
 void ClearScreen()
 {
+	memset(zBuffer, SHRT_MAX, FRAME_WIDE * FRAME_HIGH);
 	memset(pFrameL, 0, FRAME_WIDE * FRAME_HIGH * 3);
 	memset(pFrameR, 0, FRAME_WIDE * FRAME_HIGH * 3);
 }

@@ -25,13 +25,23 @@ void draw_pixel_2d(const Point_2d &point, BYTE *fBuffer)
 	BYTE r = ROUND(point.r);
 	BYTE g = ROUND(point.g);
 	BYTE b = ROUND(point.b);
-	if (x < 0 || x > FRAME_WIDE - 1 || y < 0 || y > FRAME_HIGH - 1) {
-		printf("Warning: point falls out of bounds!\n");
-		return;
-	}
+	// if (x < 0 || x > FRAME_WIDE - 1 || y < 0 || y > FRAME_HIGH - 1) {
+	// 	printf("Warning: point falls out of bounds!\n");
+	// 	return;
+	// }
 	fBuffer[3 * (y * FRAME_WIDE + x)] = r;		// R
 	fBuffer[3 * (y * FRAME_WIDE + x) + 1] = g; 	// G
 	fBuffer[3 * (y * FRAME_WIDE + x) + 2] = b; 	// B
+}
+
+void set_zbuff(int x, int y, short z_val, short *zBuffer)
+{
+	zBuffer[y * FRAME_WIDE + x] = z_val;
+}
+
+short get_zbuff(int x, int y, short *zBuffer)
+{
+	return zBuffer[y * FRAME_WIDE + x];
 }
 
 void draw_pixel_3d(const Point_3d &p, BYTE *fBuffer)
@@ -219,36 +229,27 @@ int find_point(const Polygon_2d &neighbours, const Point_2d &point)
 	return -1;
 }
 
-//comparison for the quicksort in fill_poly
-bool left(Point_2d i, Point_2d j){ return i.x < j.x; }
-
 void fill_poly(Polygon_2d poly, BYTE *fBuffer)
 {
 	Polygon_2d neighbours = poly;
 	Polygon_2d original = poly;
 	int tri_count = 0;
-	//std::sort(poly.begin(), poly.end(), left); // order on points' x vals
 	for (int i = 0; tri_count < poly.size() - 2; i++) {
 		if (i % poly.size() == 0 && i > 0) {
 			if (poly.size() == neighbours.size())
-				break; // in case all angles concave, eg. when plane is flipped
-			poly = neighbours;
+				break; // Prevent infinite loop in case all angles concave, eg. when plane is flipped.
+			poly = neighbours; // Dump the triangles that have already been drawn
 		}
-		int wrap = i % poly.size();
-		int current = find_point(neighbours, poly[wrap]);
+		int current = find_point(neighbours, poly[i % poly.size()]); // Wrap to beginning
 		int next_adjacent = current == neighbours.size() - 1 ? 0 : current + 1;
 		int prev_adjacent = current == 0 ? neighbours.size() - 1 : current - 1;
-		Polygon_2d tri = {
-			neighbours[current],
-			neighbours[next_adjacent],
-			neighbours[prev_adjacent]
-		};
+		Polygon_2d tri = {neighbours[current], neighbours[next_adjacent], neighbours[prev_adjacent]};
 		if (points_inside(tri, original) ||
-		concave(neighbours[current], neighbours[prev_adjacent], neighbours[next_adjacent])) {
+			concave(neighbours[current], neighbours[prev_adjacent], neighbours[next_adjacent]))
+		{
 			continue;
 		}
 		fill_tri(tri, fBuffer);
-		//draw_tri(tri, fBuffer);
 		neighbours.erase(neighbours.begin()+current);
 		tri_count++;
 	}
@@ -343,10 +344,10 @@ void fill_tri(Polygon_2d triangle, BYTE *fBuffer)
 		start.r += start_gradient.r / start_gradient.y;
 		start.g += start_gradient.g / start_gradient.y;
 		start.b += start_gradient.b / start_gradient.y;
-		end.x += end_gradient.x / end_gradient.y;
-		end.r += end_gradient.r / end_gradient.y;
-		end.g += end_gradient.g / end_gradient.y;
-		end.b += end_gradient.b / end_gradient.y;
+		end.x   += end_gradient.x   / end_gradient.y;
+		end.r   += end_gradient.r   / end_gradient.y;
+		end.g   += end_gradient.g   / end_gradient.y;
+		end.b   += end_gradient.b   / end_gradient.y;
 	}
 	draw_tri(triangle, fBuffer);
 }
@@ -356,9 +357,9 @@ Point_2d rand_point()
 	Point_2d point;
 	point.x = rand() % FRAME_WIDE;
 	point.y = rand() % FRAME_HIGH;
-	point.r = (BYTE)(rand() % 255);
-	point.g = (BYTE)(rand() % 255);
-	point.b = (BYTE)(rand() % 255);
+	point.r = rand() % 255;
+	point.g = rand() % 255;
+	point.b = rand() % 255;
 	return point;
 }
 
@@ -367,22 +368,20 @@ Polygon_2d rand_polygon(const Point_2d &centre, double angle_increment)
 	Polygon_2d poly;
 	double mag, x, y, r, g, b;
 	for(double theta = 0; theta < 2 * M_PI; theta += angle_increment) {
-		mag = 10 + rand() % 190;
+		mag = 10 + rand() % 190; // Arbitrary max and min values
 		x = mag * cos(theta);
 		y = mag * sin(theta);
-		r = (double)(rand() % 255);
-		g = (double)(rand() % 255);
-		b = (double)(rand() % 255);
+		r = rand() % 255;
+		g = rand() % 255;
+		b = rand() % 255;
 		Point_2d point = {centre.x + x, centre.y + y, r, g, b};
 		poly.push_back(point);
 	}
-	//std::reverse(poly.begin(), poly.end()); // make it CCW TODO: make it CCW in first place
 	return poly;
 }
 
 /*
- * Finds sorts the points in order of y value
- * So that top, middle, and bottom can be identified
+ * Sorts the points in ascending Y order
  */
 void sort_vertices(Polygon_2d &triangle)
 {
@@ -454,27 +453,29 @@ void load_vjs(std::string fpath, Object &obj, const Object_attribs &properties)
 	obj.properties = properties;
 }
 
-void translate_3d(Direction d, double offset)
+// TODO: Refactor so it just takes a Point_2d containing offsets,
+// removing need for switch
+void translate_3d(Direction d, double offset) 
 {
 	double x_offset = 0;
 	double y_offset = 0;
 	double z_offset = 0;
-	double scale_offset = 0;
+	double s_offset = 0; // scale
 	switch (d) {
-		case UP: 	y_offset 	-= offset; 	break;
-		case DOWN: 	y_offset 	+= offset; 	break;
-		case LEFT: 	x_offset 	-= offset; 	break;
-		case RIGHT: x_offset 	+= offset; 	break;
-		case IN: 	z_offset 	+= offset; 	break;
-		case OUT: 	z_offset 	-= offset; 	break;
-		case SCALE_UP: scale_offset += offset; break;
-		case SCALE_DOWN: scale_offset -= offset; break;
+		case UP: 	y_offset 	  -= offset; break;
+		case DOWN: 	y_offset 	  += offset; break;
+		case LEFT: 	x_offset 	  -= offset; break;
+		case RIGHT: x_offset 	  += offset; break;
+		case IN: 	z_offset 	  += offset; break;
+		case OUT: 	z_offset 	  -= offset; break;
+		case SCALE_UP: s_offset   += offset; break;
+		case SCALE_DOWN: s_offset -= offset; break;
 	}
 	for (int i = 0; i < translatable.size(); i++) {
 		translatable[i]->properties.centre.x += x_offset;
 		translatable[i]->properties.centre.y += y_offset;
 		translatable[i]->properties.centre.z += z_offset;
-		translatable[i]->properties.scale	+= scale_offset;
+		translatable[i]->properties.scale	+= s_offset;
 	}
 }
 
