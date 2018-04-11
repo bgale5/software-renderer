@@ -367,20 +367,9 @@ Polygon_2d rand_polygon(const Point_2d &centre, double angle_increment)
 	Polygon_2d poly;
 	double mag, x, y, r, g, b;
 	for(double theta = 0; theta < 2 * M_PI; theta += angle_increment) {
-		mag = 100 + rand() % 150;
-		if (theta <= M_PI / 2.0) {
-			x = mag * cos(theta);
-			y = mag * sin(theta);
-		} else if (theta > M_PI / 2.0 && theta <= M_PI) {
-			x = mag * cos(theta);
-			y = mag * sin(theta);
-		} else if (theta > M_PI && theta <= 3 * M_PI / 2.0) {
-			x = mag * cos(theta);
-			y = mag * sin(theta);
-		} else {
-			x = mag * cos(theta);
-			y = mag * sin(theta);
-		}
+		mag = 10 + rand() % 190;
+		x = mag * cos(theta);
+		y = mag * sin(theta);
 		r = (double)(rand() % 255);
 		g = (double)(rand() % 255);
 		b = (double)(rand() % 255);
@@ -497,16 +486,30 @@ void translate_2d(Polygon_2d &poly, const Point_2d &offset)
 	}
 }
 
-void rotate_2d(Polygon_2d &poly, const Point_2d &about, double angle)
+void rotate_z(double angle)
 {
-	for (int i = 0; i < poly.size(); i++) {
-		double x = poly[i].x; // translate to origin 
-		double y = poly[i].y; // translate to origin
-		double new_x = about.x + ( (x - about.x) * cos(angle) - (y - about.y) * sin(angle) );
-		double new_y = about.y + ( (x - about.x) * sin(angle) + (y - about.y) * cos(angle) );
-		poly[i].x = new_x;
-		poly[i].y = new_y;
+	for (int p = 0; p < translatable.size(); p++) {
+		Object *obj = translatable[p];
+		for (int i = 0; i < obj->vertices.size(); i++) {
+			Point_3d vert = obj->vertices[i];
+			double new_x = vert.x * cos(angle) - vert.y * sin(angle);
+			double new_y = vert.x * sin(angle) + vert.y * cos(angle);
+			obj->vertices[i].x = new_x;
+			obj->vertices[i].y = new_y;
+		}
 	}
+}
+
+void rotate_x(Object &obj, double angle)
+{
+	//rotate x
+	return;
+}
+
+void rotate_y(Object &obj, double angle)
+{
+	//rotate y
+	return;
 }
 
 void centre_3d()

@@ -18,6 +18,7 @@
 #define MaxNumPolys 20//900
 #define NumSidesPoly 20 //600
 #define TRANSLATION_FACTOR 10
+#define ROTATION_FACTOR 2 * M_PI / 360
 
 //====== Structs & typedefs =========
 typedef unsigned char BYTE;
@@ -90,6 +91,6 @@ void load_vjs(std::string fpath, Object &obj, const Object_attribs &properties);
 void translate_3d(Direction d, double offset);
 void centre_3d();
 Polygon_2d rand_polygon(const Point_2d &centre, double angle_increment);
-void rotate_2d(Polygon_2d &poly, const Point_2d &about, double angle);
 void translate_2d(Polygon_2d &poly, const Point_2d &offset);
 void round_vertices(Polygon_2d &poly);
+void rotate_z(double angle);

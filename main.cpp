@@ -136,6 +136,7 @@ void OnKeypress(unsigned char key, int x, int y)
 	case '=': translate_3d(SCALE_UP, TRANSLATION_FACTOR / 100.0); break;
 	case '-': translate_3d(SCALE_DOWN, TRANSLATION_FACTOR / 100.0); break;
 	case 'c': centre_3d(); break;
+	case 'z': rotate_z(ROTATION_FACTOR); break;
 	}
 	//PlaySoundEffect("Whoosh.wav"); 
 }
@@ -244,7 +245,7 @@ void BuildFrame(BYTE *pFrame, int view)
 	// // poly.push_back(p3);
 	// // poly.push_back(p4);
 	// // poly.push_back(p0);
-	// Polygon_2d poly = rand_polygon({FRAME_WIDE / 2, FRAME_HIGH / 2, 0, 0, 0}, M_PI / 3);
+	// Polygon_2d poly = rand_polygon({FRAME_WIDE / 2, FRAME_HIGH / 2, 0, 0, 0}, M_PI / 5);
 	// fill_poly(poly, pFrame);
 	// //draw_poly(poly, pFrame);
 	// //draw_pixel_2d(poly[counter = (counter + 1) % poly.size()], pFrame);
@@ -259,17 +260,6 @@ void BuildFrame(BYTE *pFrame, int view)
 		load_vjs("cube.vjs", temp, temp_properties);
 		loaded = true;
 		translatable.push_back(&temp);
-	}
-	printf("Loaded object:\n");
-	printf("Vertices:\n");
-	for (int i = 0; i < temp.vertex_count; i++) {
-		Point_3d vert = temp.vertices[i];
-		printf("(%d, %d, %d, %d, %d, %d)\n", (int)vert.x, (int)vert.y, (int)vert.z, (BYTE)vert.r, (BYTE)vert.g, (BYTE)vert.b);
-	}
-	printf("Polygons:\n");
-	for (int i = 0; i < temp.poly_count; i++) {
-		Polygon_3d polygon = temp.polys[i];
-		printf("(%d, %d, %d, %d)\n", polygon[0], polygon[1], polygon[2], polygon[3]);
 	}
 
 	draw_object_3d(temp, pFrame);
