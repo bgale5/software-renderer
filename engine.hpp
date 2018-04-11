@@ -23,21 +23,17 @@
 //====== Structs & typedefs =========
 typedef unsigned char BYTE;
 
-typedef struct point_2d {
+typedef struct Point {
 	double x, y;
 	double r, g, b;
-} Point_2d;
+	double z = 0;
+} Point;
 
-typedef struct point_3d {
-	double x, y, z;
-	double r, g, b;
-} Point_3d;
-
-typedef std::vector<Point_2d> Polygon_2d;
+typedef std::vector<Point> Polygon_2d;
 typedef std::vector<int> Polygon_3d;
 
 typedef struct object_attribs {
-	Point_3d centre;
+	Point centre;
 	double scale;
 } Object_attribs;
 
@@ -45,7 +41,7 @@ typedef struct object {
 	Object_attribs properties;
 	int vertex_count, poly_count;
 	std::vector<Polygon_3d> polys;
-	std::vector<Point_3d> vertices;
+	std::vector<Point> vertices;
 } Object;
 
 enum Direction {
@@ -65,33 +61,33 @@ extern std::vector<Object*> translatable;
 
 
 #endif
-void draw_pixel_2d(const Point_2d &point, BYTE *fBuffer);
-void draw_pixel_3d(const Point_3d &p, BYTE *fBuffer);
-Point_2d project_point(const Point_3d &p3d);
+void draw_pixel_2d(const Point &point, BYTE *fBuffer);
+void draw_pixel_3d(const Point &p, BYTE *fBuffer);
+Point project_point(const Point &p3d);
 void project_polygon(const struct object &obj, const Polygon_2d &p2d);
-void draw_line(Point_2d p1, Point_2d p2, BYTE *fBuffer);
+void draw_line(Point p1, Point p2, BYTE *fBuffer);
 bool clip_test(double p, double q, double &u1, double &u2);
-void clip_line(Point_2d p1, Point_2d p2, BYTE *fBuffer);
+void clip_line(Point p1, Point p2, BYTE *fBuffer);
 void draw_tri(const Polygon_2d &tri, BYTE *fBuffer);
 void draw_poly(const Polygon_2d &poly, BYTE *fBuffer);
 void draw_object_3d(const struct object &obj, BYTE *fBuffer);
 void draw_wireframe_3d(const struct object &obj, BYTE *fBuffer);
-bool point_cmp(const Point_2d &a, const Point_2d &b);
-int find_point(const Polygon_2d &neighbours, const Point_2d &point);
+bool point_cmp(const Point &a, const Point &b);
+int find_point(const Polygon_2d &neighbours, const Point &point);
 void fill_poly(Polygon_2d poly, BYTE *fBuffer);
-bool concave(const Point_2d &p2, const Point_2d &p1, const Point_2d &p0);
+bool concave(const Point &p2, const Point &p1, const Point &p0);
 bool points_inside(const Polygon_2d &tri, const Polygon_2d &poly);
-bool inside(const Polygon_2d &tri, const Point_2d &pt);
-bool same_side(const Point_2d &a, const Point_2d &b, const Point_2d &l1, const Point_2d &l2);
+bool inside(const Polygon_2d &tri, const Point &pt);
+bool same_side(const Point &a, const Point &b, const Point &l1, const Point &l2);
 bool collinear(const Polygon_2d &tri);
 void fill_tri(Polygon_2d triangle, BYTE *fBuffer);
-Point_2d rand_point();
+Point rand_point();
 void sort_vertices(Polygon_2d &triangle);
 void load_vjs(std::string fpath, Object &obj, const Object_attribs &properties);
 void translate_3d(Direction d, double offset);
 void centre_3d();
-Polygon_2d rand_polygon(const Point_2d &centre, double angle_increment);
-void translate_2d(Polygon_2d &poly, const Point_2d &offset);
+Polygon_2d rand_polygon(const Point &centre, double angle_increment);
+void translate_2d(Polygon_2d &poly, const Point &offset);
 void round_vertices(Polygon_2d &poly);
 void rotate_z(double angle);
 void rotate_x(double angle);

@@ -23,7 +23,7 @@ BYTE	pFrameL[FRAME_WIDE * FRAME_HIGH * 3];
 BYTE	pFrameR[FRAME_WIDE * FRAME_HIGH * 3];
 short zBuffer[FRAME_WIDE * FRAME_HIGH] = {SHRT_MAX};
 int		shade = 0;
-point_2d	xypos = {0,0};
+Point	xypos = {0,0};
 int		stereo = 0;
 int		eyes = 10;
 
@@ -206,13 +206,13 @@ void	PlaySoundEffect(char * filename)
 bool loaded = false;
 Object temp;
 int counter = 0;
-Point_2d centre;
+Point centre;
 void BuildFrame(BYTE *pFrame, int view)
 {
 	//  ------ CLIP LINE TEST ----- //
 
-	// Point_2d p0 = {100, 100, 255, 0, 0};
-	// Point_2d p1 = {400, 300, 0, 255, 0};
+	// Point p0 = {100, 100, 255, 0, 0};
+	// Point p1 = {400, 300, 0, 255, 0};
 	// clip_line(p0, p1, pFrame);
 
 	// ----- FILL TRIANGLE TEST ----- //
@@ -222,12 +222,12 @@ void BuildFrame(BYTE *pFrame, int view)
 	// }
 	// Polygon_2d triangle;
 	// Polygon_2d triangle2;
-	// Point_2d p0 = rand_point();
-	// Point_2d p2 = rand_point();
-	// Point_2d p1 = rand_point();
-	// Point_2d p3 = rand_point();
-	// Point_2d p4 = rand_point();
-	// Point_2d p5 = rand_point();
+	// Point p0 = rand_point();
+	// Point p2 = rand_point();
+	// Point p1 = rand_point();
+	// Point p3 = rand_point();
+	// Point p4 = rand_point();
+	// Point p5 = rand_point();
 	// triangle.push_back(p0);
 	// triangle.push_back(p1);
 	// triangle.push_back(p2);
@@ -240,12 +240,12 @@ void BuildFrame(BYTE *pFrame, int view)
 
 	// -------  POLY TEST ----- //
 
-	// // Point_2d p0 = {100, 100, 255, 255, 255};
-	// // Point_2d p1 = {100, 500, 255, 0, 0};
-	// // Point_2d pa = {400, 250, 0, 255, 255};
-	// // Point_2d p2 = {500, 500, 0, 255, 0};
-	// // Point_2d p3 = {500, 150, 0, 0, 255};
-	// // Point_2d p4 = {300, 300, 255, 255, 0};
+	// // Point p0 = {100, 100, 255, 255, 255};
+	// // Point p1 = {100, 500, 255, 0, 0};
+	// // Point pa = {400, 250, 0, 255, 255};
+	// // Point p2 = {500, 500, 0, 255, 0};
+	// // Point p3 = {500, 150, 0, 0, 255};
+	// // Point p4 = {300, 300, 255, 255, 0};
 	// // Polygon_2d poly;
 	// // poly.push_back(p1);
 	// // poly.push_back(pa);

@@ -18,7 +18,7 @@
 std::vector<Object*> translatable;
 
 /*======================= Drawing Functions ================================= */
-void draw_pixel_2d(const Point_2d &point, BYTE *fBuffer)
+void draw_pixel_2d(const Point &point, BYTE *fBuffer)
 {
 	int x =  ROUND(point.x);
 	int y =  ROUND(point.y);
@@ -44,17 +44,17 @@ short get_zbuff(int x, int y, short *zBuffer)
 	return zBuffer[y * FRAME_WIDE + x];
 }
 
-void draw_pixel_3d(const Point_3d &p, BYTE *fBuffer)
+void draw_pixel_3d(const Point &p, BYTE *fBuffer)
 {
-	Point_2d point = {(p.x * X_OFFSET / (double)(p.z + X_OFFSET)),
+	Point point = {(p.x * X_OFFSET / (double)(p.z + X_OFFSET)),
 				(p.y * Y_OFFSET / (double)(p.z + Y_OFFSET)),
 				p.r, p.g, p.b};
 	draw_pixel_2d(point, fBuffer);
 }
 
-Point_2d project_point(const Point_3d &p3d)
+Point project_point(const Point &p3d)
 {
-	Point_2d p2d = {
+	Point p2d = {
 		((p3d.x - X_OFFSET) * PERSPECTIVE / (double)(p3d.z + PERSPECTIVE)) + X_OFFSET,
 		((p3d.y - Y_OFFSET) * PERSPECTIVE / (double)(p3d.z + PERSPECTIVE)) + Y_OFFSET,
 		p3d.r,
@@ -76,9 +76,9 @@ void project_polygon(const Object &obj, std::vector<Polygon_2d> &projected_polys
 	}
 }
 
-void draw_line(Point_2d p1, Point_2d p2, BYTE *fBuffer)
+void draw_line(Point p1, Point p2, BYTE *fBuffer)
 {
-	Point_2d buffer = p1;
+	Point buffer = p1;
 	int dx = p2.x - p1.x;
 	int dy = p2.y - p1.y;
 	int steps = abs(dx) > abs(dy) ? abs(dx) : abs(dy);
@@ -117,7 +117,7 @@ bool clip_test(double p, double q, double &u1, double &u2)
 	return true;
 }
 
-void clip_line(Point_2d p1, Point_2d p2, BYTE *fBuffer)
+void clip_line(Point p1, Point p2, BYTE *fBuffer)
 {
 	double dx = p2.x - p1.x;
 	double dy;
@@ -172,7 +172,7 @@ Object rel_to_abs(const Object &rel)
 {
 	Object absolute = rel;
 	double scale = rel.properties.scale;
-	Point_3d centre = rel.properties.centre;
+	Point centre = rel.properties.centre;
 	for (int i = 0; i < absolute.vertex_count; i++) {
 		absolute.vertices[i].x = absolute.vertices[i].x * scale + centre.x;
 		absolute.vertices[i].y = absolute.vertices[i].y * scale + centre.y;
@@ -208,7 +208,7 @@ void draw_wireframe_3d(const Object &obj, BYTE *fBuffer)
 }
 
 // Check whether two points are identical in location and colour
-bool point_cmp(const Point_2d &a, const Point_2d &b)
+bool point_cmp(const Point &a, const Point &b)
 {
 	return (
 		   a.x == b.x
@@ -219,7 +219,7 @@ bool point_cmp(const Point_2d &a, const Point_2d &b)
 	);
 }
 
-int find_point(const Polygon_2d &neighbours, const Point_2d &point)
+int find_point(const Polygon_2d &neighbours, const Point &point)
 {
 	// NOTE: Assumes that points are unique
 	for (int i = 0; i < neighbours.size(); i++) {
@@ -256,7 +256,7 @@ void fill_poly(Polygon_2d poly, BYTE *fBuffer)
 }
 
 // Test to see if p0 is on the left/right side of p2 --> p1 edge.
-bool concave(const Point_2d &p2, const Point_2d &p1, const Point_2d &p0)
+bool concave(const Point &p2, const Point &p1, const Point &p0)
 {
     return ((p2.x - p1.x) * (p0.y - p1.y) - (p2.y - p1.y) * (p0.x - p1.x)) < 0;
 }
@@ -270,7 +270,7 @@ bool points_inside(const Polygon_2d &tri, const Polygon_2d &poly)
 	return false;
 }
 
-bool inside(const Polygon_2d &tri, const Point_2d &pt)
+bool inside(const Polygon_2d &tri, const Point &pt)
 {
 	return same_side(pt, tri[0], tri[1], tri[2])
 			&& same_side(pt, tri[1], tri[0], tri[2])
@@ -279,7 +279,7 @@ bool inside(const Polygon_2d &tri, const Point_2d &pt)
 
 // l1 and l2 are the ends of the line
 // returns true if a & b are on the same side of line
-bool same_side(const Point_2d &a, const Point_2d &b, const Point_2d &l1, const Point_2d &l2)
+bool same_side(const Point &a, const Point &b, const Point &l1, const Point &l2)
 {
 	double apt = (a.x - l1.x) * (l2.y - l1.y) - (l2.x - l1.x) * (a.y - l1.y);
 	double bpt = (b.x - l1.x) * (l2.y - l1.y) - (l2.x - l1.x) * (b.y - l1.y);
@@ -296,9 +296,9 @@ bool collinear(const Polygon_2d &tri)
 	return true;
 }
 
-Point_2d point_gradient(const Point_2d &p1, const Point_2d &p2)
+Point point_gradient(const Point &p1, const Point &p2)
 {
-	Point_2d gradient = {
+	Point gradient = {
 		floor(p1.x - p2.x),
 		floor(p1.y - p2.y),
 		floor(p1.r - p2.r),
@@ -330,10 +330,10 @@ void fill_tri(Polygon_2d triangle, BYTE *fBuffer)
 		clip_line(triangle[1], triangle[2], fBuffer);
 		return;
 	} // handle collinear case
-	Point_2d start, end;
+	Point start, end;
 	end = triangle[0];
 	start = triangle[0].y == triangle[1].y ? triangle[1] : triangle[0]; // handle flat-top case
-	Point_2d start_gradient, end_gradient;
+	Point start_gradient, end_gradient;
 	start_gradient = point_gradient(triangle[1], triangle[0]);
 	end_gradient = point_gradient(triangle[2], triangle[0]);
 	for (int y = triangle[0].y; y < triangle[2].y; y++, start.y++, end.y++) {
@@ -352,9 +352,9 @@ void fill_tri(Polygon_2d triangle, BYTE *fBuffer)
 	draw_tri(triangle, fBuffer);
 }
 
-Point_2d rand_point()
+Point rand_point()
 {
-	Point_2d point;
+	Point point;
 	point.x = rand() % FRAME_WIDE;
 	point.y = rand() % FRAME_HIGH;
 	point.r = rand() % 255;
@@ -363,7 +363,7 @@ Point_2d rand_point()
 	return point;
 }
 
-Polygon_2d rand_polygon(const Point_2d &centre, double angle_increment)
+Polygon_2d rand_polygon(const Point &centre, double angle_increment)
 {
 	Polygon_2d poly;
 	double mag, x, y, r, g, b;
@@ -374,7 +374,7 @@ Polygon_2d rand_polygon(const Point_2d &centre, double angle_increment)
 		r = rand() % 255;
 		g = rand() % 255;
 		b = rand() % 255;
-		Point_2d point = {centre.x + x, centre.y + y, r, g, b};
+		Point point = {centre.x + x, centre.y + y, r, g, b};
 		poly.push_back(point);
 	}
 	return poly;
@@ -385,7 +385,7 @@ Polygon_2d rand_polygon(const Point_2d &centre, double angle_increment)
  */
 void sort_vertices(Polygon_2d &triangle)
 {
-	Point_2d *temp = NULL;
+	Point *temp = NULL;
 	if (triangle[0].y > triangle[2].y) {
 		std::swap(triangle[0], triangle[2]);
 	}
@@ -407,9 +407,9 @@ std::vector<std::string> tokenize(std::string str, char sep=' ')
 	return ret;
 }
 
-Point_3d toks_to_p3d(std::vector<std::string> &toks)
+Point toks_to_p3d(std::vector<std::string> &toks)
 {
-	Point_3d p3d;
+	Point p3d;
 	p3d.x = atoi(toks[0].c_str());
 	p3d.y = atoi(toks[1].c_str());
 	p3d.z = atoi(toks[2].c_str());
@@ -441,7 +441,7 @@ void load_vjs(std::string fpath, Object &obj, const Object_attribs &properties)
 	for (int i = 0; i < vert_count; i++) {
 		std::getline(infile, linebuffer);
 		toks = tokenize(linebuffer, ' ');
-		Point_3d point = toks_to_p3d(toks);
+		Point point = toks_to_p3d(toks);
 		obj.vertices.push_back(point);
 	}
 	for (int i = 0; i < poly_count; i++) {
@@ -453,7 +453,7 @@ void load_vjs(std::string fpath, Object &obj, const Object_attribs &properties)
 	obj.properties = properties;
 }
 
-// TODO: Refactor so it just takes a Point_2d containing offsets,
+// TODO: Refactor so it just takes a Point containing offsets,
 // removing need for switch
 void translate_3d(Direction d, double offset) 
 {
@@ -479,7 +479,7 @@ void translate_3d(Direction d, double offset)
 	}
 }
 
-void translate_2d(Polygon_2d &poly, const Point_2d &offset)
+void translate_2d(Polygon_2d &poly, const Point &offset)
 {
 	for (int i = 0; i < poly.size(); i++) {
 		poly[i].x += offset.x;
@@ -492,7 +492,7 @@ void rotate_z(double angle)
 	for (int p = 0; p < translatable.size(); p++) {
 		Object *obj = translatable[p];
 		for (int i = 0; i < obj->vertices.size(); i++) {
-			Point_3d vert = obj->vertices[i];
+			Point vert = obj->vertices[i];
 			double new_x = vert.x * cos(angle) - vert.y * sin(angle);
 			double new_y = vert.x * sin(angle) + vert.y * cos(angle);
 			obj->vertices[i].x = new_x;
@@ -506,7 +506,7 @@ void rotate_x(double angle)
 	for (int p = 0; p < translatable.size(); p++) {
 		Object *obj = translatable[p];
 		for (int i = 0; i < obj->vertices.size(); i++) {
-			Point_3d vert = obj->vertices[i];
+			Point vert = obj->vertices[i];
 			double new_y = vert.y * cos(angle) - vert.z * sin(angle);
 			double new_z = vert.y * sin(angle) + vert.z * cos(angle);
 			obj->vertices[i].y = new_y;
@@ -520,7 +520,7 @@ void rotate_y(double angle)
 	for (int p = 0; p < translatable.size(); p++) {
 		Object *obj = translatable[p];
 		for (int i = 0; i < obj->vertices.size(); i++) {
-			Point_3d vert = obj->vertices[i];
+			Point vert = obj->vertices[i];
 			double new_z = vert.z * cos(angle) - vert.x * sin(angle);
 			double new_x = vert.z * sin(angle) + vert.x * cos(angle);
 			obj->vertices[i].z = new_z;
