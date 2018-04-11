@@ -142,9 +142,9 @@ void OnKeypress(unsigned char key, int x, int y)
 	case 'Z': rotate_z(-ROTATION_FACTOR); break;
 	case 'X': rotate_x(-ROTATION_FACTOR); break;
 	case 'Y': rotate_y(-ROTATION_FACTOR); break;
-	case 'r': rotate_3d( M_PI / 2,  0 * ROTATION_FACTOR, M_PI / 2);
+	case 'r': rotate_3d(ROTATION_FACTOR, ROTATION_FACTOR, 0);
 	}
-	PlaySoundEffect("Whoosh.wav"); 
+	//PlaySoundEffect("Whoosh.wav"); 
 }
 
 
@@ -270,6 +270,8 @@ void BuildFrame(BYTE *pFrame, int view)
 
 	draw_object_3d(temp, pFrame);
 	//draw_wireframe_3d(temp, pFrame);
+	translate_3d(RIGHT, 1);
 	
 	//sleep(1);
+	//usleep(100 * 1000);
 }

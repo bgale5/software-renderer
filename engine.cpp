@@ -338,7 +338,7 @@ void fill_tri(Polygon_2d triangle, BYTE *fBuffer)
 	for (int y = triangle[0].y; y < triangle[2].y; y++, start.y++, end.y++) {
 		if (y == triangle[1].y)
 			start_gradient = point_gradient(triangle[2], triangle[1]);
-		draw_line(start, end, fBuffer);
+		clip_line(start, end, fBuffer);
 		start.x += start_gradient.x / start_gradient.y;
 		start.r += start_gradient.r / start_gradient.y;
 		start.g += start_gradient.g / start_gradient.y;
