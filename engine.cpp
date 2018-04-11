@@ -500,16 +500,39 @@ void rotate_z(double angle)
 	}
 }
 
-void rotate_x(Object &obj, double angle)
+void rotate_x(double angle)
 {
-	//rotate x
-	return;
+	for (int p = 0; p < translatable.size(); p++) {
+		Object *obj = translatable[p];
+		for (int i = 0; i < obj->vertices.size(); i++) {
+			Point_3d vert = obj->vertices[i];
+			double new_y = vert.y * cos(angle) - vert.z * sin(angle);
+			double new_z = vert.y * sin(angle) + vert.z * cos(angle);
+			obj->vertices[i].y = new_y;
+			obj->vertices[i].z = new_z;
+		}
+	}
 }
 
-void rotate_y(Object &obj, double angle)
+void rotate_y(double angle)
 {
-	//rotate y
-	return;
+	for (int p = 0; p < translatable.size(); p++) {
+		Object *obj = translatable[p];
+		for (int i = 0; i < obj->vertices.size(); i++) {
+			Point_3d vert = obj->vertices[i];
+			double new_z = vert.z * cos(angle) - vert.x * sin(angle);
+			double new_x = vert.z * sin(angle) + vert.x * cos(angle);
+			obj->vertices[i].z = new_z;
+			obj->vertices[i].x = new_x;
+		}
+	}
+}
+
+void rotate_3d(double angle_x, double angle_y, double angle_z)
+{
+	rotate_x(angle_x);
+	rotate_y(angle_y);
+	rotate_z(angle_z);
 }
 
 void centre_3d()

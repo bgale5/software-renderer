@@ -123,22 +123,28 @@ void OnKeypress(unsigned char key, int x, int y)
 	switch (key) 
 	{ 
 	case ' ': xypos.x = xypos.y = 0; break;
-	case 's': stereo ^= 1, eyes = 10;break;
+	case 'S': stereo ^= 1, eyes = 10;break;
 	case ']': eyes++;	break;
 	case '[': eyes--;	break;
 	case 27 : exit(0); break;
-	case 'j': translate_3d(DOWN, TRANSLATION_FACTOR); break;
-	case 'k': translate_3d(UP, TRANSLATION_FACTOR); break;
-	case 'h': translate_3d(LEFT, TRANSLATION_FACTOR); break;
-	case 'l': translate_3d(RIGHT, TRANSLATION_FACTOR); break;
+	case 's': translate_3d(DOWN, TRANSLATION_FACTOR); break;
+	case 'w': translate_3d(UP, TRANSLATION_FACTOR); break;
+	case 'a': translate_3d(LEFT, TRANSLATION_FACTOR); break;
+	case 'd': translate_3d(RIGHT, TRANSLATION_FACTOR); break;
 	case 'i': translate_3d(IN, TRANSLATION_FACTOR); break;
 	case 'o': translate_3d(OUT, TRANSLATION_FACTOR); break;
 	case '=': translate_3d(SCALE_UP, TRANSLATION_FACTOR / 100.0); break;
 	case '-': translate_3d(SCALE_DOWN, TRANSLATION_FACTOR / 100.0); break;
 	case 'c': centre_3d(); break;
 	case 'z': rotate_z(ROTATION_FACTOR); break;
+	case 'x': rotate_x(ROTATION_FACTOR); break;
+	case 'y': rotate_y(ROTATION_FACTOR); break;
+	case 'Z': rotate_z(-ROTATION_FACTOR); break;
+	case 'X': rotate_x(-ROTATION_FACTOR); break;
+	case 'Y': rotate_y(-ROTATION_FACTOR); break;
+	case 'r': rotate_3d( M_PI / 2,  0 * ROTATION_FACTOR, M_PI / 2);
 	}
-	//PlaySoundEffect("Whoosh.wav"); 
+	PlaySoundEffect("Whoosh.wav"); 
 }
 
 
@@ -263,7 +269,7 @@ void BuildFrame(BYTE *pFrame, int view)
 	}
 
 	draw_object_3d(temp, pFrame);
-	draw_wireframe_3d(temp, pFrame);
+	//draw_wireframe_3d(temp, pFrame);
 	
 	//sleep(1);
 }

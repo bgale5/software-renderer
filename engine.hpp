@@ -94,3 +94,6 @@ Polygon_2d rand_polygon(const Point_2d &centre, double angle_increment);
 void translate_2d(Polygon_2d &poly, const Point_2d &offset);
 void round_vertices(Polygon_2d &poly);
 void rotate_z(double angle);
+void rotate_x(double angle);
+void rotate_y(double angle);
+void rotate_3d(double angle_x, double angle_y, double angle_z);
