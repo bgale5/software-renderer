@@ -22,12 +22,12 @@ int zBuffer[FRAME_WIDE * FRAME_HIGH];
 /*======================= Drawing Functions ================================= */
 void draw_pixel_2d(const Point &point, BYTE *fBuffer)
 {
-	int x =  ROUND(point.x);
-	int y =  ROUND(point.y);
+	int x  =  ROUND(point.x);
+	int y  =  ROUND(point.y);
 	BYTE r = ROUND(point.r);
 	BYTE g = ROUND(point.g);
 	BYTE b = ROUND(point.b);
-	int z =  ROUND(point.z);
+	int z  =  ROUND(point.z);
 	if (z > get_zbuff(x, y)) // another pixel is in front; don't draw
 		return;
 	fBuffer[3 * (y * FRAME_WIDE + x)] = r;		// R
@@ -559,7 +559,6 @@ std::vector<Polygon> get_object_polygons(const Object &obj)
 	}
 	return surfaces;
 }
-
 
 // Return any 3 points that form a convex angle
 Polygon find_convex_vectors(const Polygon &surface)
