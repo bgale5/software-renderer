@@ -16,6 +16,7 @@
 /*======================= Global Variables  ================================= */
 
 std::vector<Object*> translatable;
+std::vector<Object> world_objects;
 int zBuffer[FRAME_WIDE * FRAME_HIGH];
 
 /*======================= Drawing Functions ================================= */
@@ -69,11 +70,11 @@ Point project_point(const Point &p3d)
 	return p2d;
 }
 
-void project_polygon(const Object &obj, std::vector<Polygon_2d> &projected_polys)
+void project_polygon(const Object &obj, std::vector<Polygon> &projected_polys)
 {
 	for (int i = 0; i < obj.poly_count; i++) { // For every polygon in the object...
-		Polygon_3d current_poly = obj.polys[i];
-		Polygon_2d projected_poly;
+		Polygon_ref current_poly = obj.polys[i];
+		Polygon projected_poly;
 		for (int j = 0; j < current_poly.size(); j++) { // For every point in the current polygon
 			projected_poly.push_back(project_point(obj.vertices[current_poly[j]]));
 		}
@@ -148,14 +149,14 @@ void clip_line(Point p1, Point p2, BYTE *fBuffer)
 }
 
 // If tri contains more than 3 points, the excess will be ignored
-void draw_tri(const Polygon_2d &tri, BYTE *fBuffer)
+void draw_tri(const Polygon &tri, BYTE *fBuffer)
 {
 	clip_line(tri[0], tri[1], fBuffer);
 	clip_line(tri[0], tri[2], fBuffer);
 	clip_line(tri[1], tri[2], fBuffer);
 }
 
-void draw_poly(const Polygon_2d &poly, BYTE *fBuffer)
+void draw_poly(const Polygon &poly, BYTE *fBuffer)
 {
 	int vc = poly.size();
 	if (vc == 1) {
@@ -183,7 +184,7 @@ Object rel_to_abs(const Object &rel)
 
 void draw_object_3d(const Object &obj, BYTE *fBuffer)
 {
-	std::vector<Polygon_2d> projected_polys;
+	std::vector<Polygon> projected_polys;
 	Object absolute = rel_to_abs(obj);
 	project_polygon(absolute, projected_polys); // Populates projected_polys
 	for (int i = 0; i < projected_polys.size(); i++) {
@@ -193,7 +194,7 @@ void draw_object_3d(const Object &obj, BYTE *fBuffer)
 
 void draw_wireframe_3d(const Object &obj, BYTE *fBuffer)
 {
-	std::vector<Polygon_2d> polys;
+	std::vector<Polygon> polys;
 	Object absolute = rel_to_abs(obj);
 	project_polygon(absolute, polys);
 	for (int i = 0; i < obj.poly_count; i++) {
@@ -219,7 +220,7 @@ bool point_cmp(const Point &a, const Point &b)
 	);
 }
 
-int find_point(const Polygon_2d &neighbours, const Point &point)
+int find_point(const Polygon &neighbours, const Point &point)
 {
 	// NOTE: Assumes that points are unique
 	for (int i = 0; i < neighbours.size(); i++) {
@@ -229,10 +230,10 @@ int find_point(const Polygon_2d &neighbours, const Point &point)
 	return -1;
 }
 
-void fill_poly(Polygon_2d poly, BYTE *fBuffer)
+void fill_poly(Polygon poly, BYTE *fBuffer)
 {
-	Polygon_2d neighbours = poly;
-	Polygon_2d original = poly;
+	Polygon neighbours = poly;
+	Polygon original = poly;
 	int tri_count = 0;
 	for (int i = 0; tri_count < poly.size() - 2; i++) {
 		if (i % poly.size() == 0 && i > 0) {
@@ -243,7 +244,7 @@ void fill_poly(Polygon_2d poly, BYTE *fBuffer)
 		int current = find_point(neighbours, poly[i % poly.size()]); // Wrap to beginning
 		int next_adjacent = current == neighbours.size() - 1 ? 0 : current + 1;
 		int prev_adjacent = current == 0 ? neighbours.size() - 1 : current - 1;
-		Polygon_2d tri = {neighbours[current], neighbours[next_adjacent], neighbours[prev_adjacent]};
+		Polygon tri = {neighbours[current], neighbours[next_adjacent], neighbours[prev_adjacent]};
 		if (points_inside(tri, original) || concave(neighbours[current], neighbours[prev_adjacent], neighbours[next_adjacent]))
 			continue;
 		fill_tri(tri, fBuffer);
@@ -258,7 +259,7 @@ bool concave(const Point &p2, const Point &p1, const Point &p0)
     return ((p2.x - p1.x) * (p0.y - p1.y) - (p2.y - p1.y) * (p0.x - p1.x)) < 0;
 }
 
-bool points_inside(const Polygon_2d &tri, const Polygon_2d &poly)
+bool points_inside(const Polygon &tri, const Polygon &poly)
 {
 	for (int i = 0; i < poly.size(); i++) {
 		if (inside(tri, poly[i]))
@@ -267,7 +268,7 @@ bool points_inside(const Polygon_2d &tri, const Polygon_2d &poly)
 	return false;
 }
 
-bool inside(const Polygon_2d &tri, const Point &pt)
+bool inside(const Polygon &tri, const Point &pt)
 {
 	return same_side(pt, tri[0], tri[1], tri[2])
 			&& same_side(pt, tri[1], tri[0], tri[2])
@@ -283,7 +284,7 @@ bool same_side(const Point &a, const Point &b, const Point &l1, const Point &l2)
 	return ((apt * bpt) > 0);
 }
 
-bool collinear(const Polygon_2d &tri)
+bool collinear(const Polygon &tri)
 {
 	double grad = (double)(tri[1].y - tri[0].y) / (double)(tri[1].x - tri[0].x);
 	if ((double)(tri[2].y - tri[1].y) / (double)(tri[2].x - tri[1].x) != grad)
@@ -306,7 +307,7 @@ Point point_gradient(const Point &p1, const Point &p2)
 	return gradient;
 }
 
-void round_vertices(Polygon_2d &poly)
+void round_vertices(Polygon &poly)
 {
 	for (int i = 0; i < poly.size(); i++) {
 		poly[i].x = (double)ROUND(poly[i].x);
@@ -318,7 +319,7 @@ void round_vertices(Polygon_2d &poly)
 	}
 }
 
-void fill_tri(Polygon_2d triangle, BYTE *fBuffer)
+void fill_tri(Polygon triangle, BYTE *fBuffer)
 {
 	round_vertices(triangle);
 	sort_vertices(triangle);
@@ -362,9 +363,9 @@ Point rand_point()
 	return point;
 }
 
-Polygon_2d rand_polygon(const Point &centre, double angle_increment)
+Polygon rand_polygon(const Point &centre, double angle_increment)
 {
-	Polygon_2d poly;
+	Polygon poly;
 	double mag, x, y, r, g, b;
 	for(double theta = 0; theta < 2 * M_PI; theta += angle_increment) {
 		mag = 10 + rand() % 190; // Arbitrary max and min values
@@ -382,7 +383,7 @@ Polygon_2d rand_polygon(const Point &centre, double angle_increment)
 /*
  * Sorts the points in ascending Y order
  */
-void sort_vertices(Polygon_2d &triangle)
+void sort_vertices(Polygon &triangle)
 {
 	Point *temp = NULL;
 	if (triangle[0].y > triangle[2].y) {
@@ -418,9 +419,9 @@ Point toks_to_p3d(std::vector<std::string> &toks)
 	return p3d;
 }
 
-Polygon_3d toks_to_poly3d(std::vector<std::string> &toks)
+Polygon_ref toks_to_poly3d(std::vector<std::string> &toks)
 {
-	Polygon_3d poly;
+	Polygon_ref poly;
 	for (int i = 1; i < toks.size(); i++) {
 		poly.push_back(atoi(toks[i].c_str()));
 	}
@@ -446,7 +447,7 @@ void load_vjs(std::string fpath, Object &obj, const Object_attribs &properties)
 	for (int i = 0; i < poly_count; i++) {
 		std::getline(infile, linebuffer);
 		toks = tokenize(linebuffer, ' ');
-		Polygon_3d poly = toks_to_poly3d(toks);
+		Polygon_ref poly = toks_to_poly3d(toks);
 		obj.polys.push_back(poly);
 	}
 	obj.properties = properties;
@@ -478,7 +479,7 @@ void translate_3d(Direction d, double offset)
 	}
 }
 
-void translate_2d(Polygon_2d &poly, const Point &offset)
+void translate_2d(Polygon &poly, const Point &offset)
 {
 	for (int i = 0; i < poly.size(); i++) {
 		poly[i].x += offset.x;
@@ -542,5 +543,71 @@ void centre_3d()
 		translatable[i]->properties.centre.y = FRAME_HIGH / 2;
 		translatable[i]->properties.centre.z = 0;
 		translatable[i]->properties.scale = 1;
+	}
+}
+
+std::vector<Polygon> get_object_polygons(const Object &obj)
+{
+	std::vector<Polygon> surfaces;
+	for (int i = 0; i < obj.polys.size(); i++) {
+		Polygon_ref pol_indices = obj.polys[i];
+		Polygon surface;
+		for (int j = 0; j < pol_indices.size(); j++) {
+			surface.push_back(obj.vertices[pol_indices[i]]);
+		}
+		surfaces.push_back(surface);
+	}
+	return surfaces;
+}
+
+
+// Return any 3 points that form a convex angle
+Polygon find_convex_vectors(const Polygon &surface)
+{
+	for (int i = 0; i < surface.size(); i++) {
+		Point current = surface[i];
+		Point prev = i == 0 ? surface.back() : surface[i - 1];
+		Point next = i == surface.size() - 1 ? surface[0] : surface[i + 1];
+		if (!concave(current, prev, next))
+			return {prev, current, next};
+	}
+	return {{0},{0},{0}};
+}
+
+Point point_diff(const Point &p1, const Point &p2)
+{
+	return {
+		p1.x - p2.x,
+		p1.y - p2.y,
+		p1.r - p2.r,
+		p1.g - p2.g,
+		p1.b - p2.b,
+		p1.z - p2.z
+	};
+}
+
+void normalize_vector(Point &vector)
+{
+	double L = sqrt(SQR(vector.x) + SQR(vector.y) + SQR(vector.z));
+	vector.x /= L;
+	vector.y /= L;
+	vector.z /= L;
+}
+
+void compute_surface_normals(const Object &obj, std::vector<Point> &surface_normals)
+{
+	std::vector<Polygon> surfaces = get_object_polygons(obj);
+	for (int i = 0; i < surfaces.size(); i++) {
+		Point N;
+		// vectors prev --> current & current --> next
+		Polygon convex_vects = find_convex_vectors(surfaces[i]);
+		Point V1 = point_diff(convex_vects[1], convex_vects[0]);
+		Point V2 = point_diff(convex_vects[2], convex_vects[1]);
+		normalize_vector(V1);
+		normalize_vector(V2);
+		// Compute the corss product
+		N.x = V1.y * V2.z - V1.z * V2.y;
+		N.y = V1.z * V2.x - V1.x * V2.z;
+		N.z = V1.x * V2.y - V1.y * V2.x;
 	}
 }

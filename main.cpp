@@ -220,8 +220,8 @@ void BuildFrame(BYTE *pFrame, int view)
 
 	// 	loaded = true;
 	// }
-	// Polygon_2d triangle;
-	// Polygon_2d triangle2;
+	// Polygon triangle;
+	// Polygon triangle2;
 	// Point p0 = rand_point();
 	// Point p2 = rand_point();
 	// Point p1 = rand_point();
@@ -246,14 +246,14 @@ void BuildFrame(BYTE *pFrame, int view)
 	// // Point p2 = {500, 500, 0, 255, 0};
 	// // Point p3 = {500, 150, 0, 0, 255};
 	// // Point p4 = {300, 300, 255, 255, 0};
-	// // Polygon_2d poly;
+	// // Polygon poly;
 	// // poly.push_back(p1);
 	// // poly.push_back(pa);
 	// // poly.push_back(p2);
 	// // poly.push_back(p3);
 	// // poly.push_back(p4);
 	// // poly.push_back(p0);
-	// Polygon_2d poly = rand_polygon({FRAME_WIDE / 2, FRAME_HIGH / 2, 0, 0, 0}, M_PI / 5);
+	// Polygon poly = rand_polygon({FRAME_WIDE / 2, FRAME_HIGH / 2, 0, 0, 0}, M_PI / 5);
 	// fill_poly(poly, pFrame);
 	// //draw_poly(poly, pFrame);
 	// //draw_pixel_2d(poly[counter = (counter + 1) % poly.size()], pFrame);
