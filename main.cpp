@@ -21,7 +21,6 @@
 //====== Global Variables ==========
 BYTE	pFrameL[FRAME_WIDE * FRAME_HIGH * 3];
 BYTE	pFrameR[FRAME_WIDE * FRAME_HIGH * 3];
-short zBuffer[FRAME_WIDE * FRAME_HIGH] = {SHRT_MAX};
 int		shade = 0;
 Point	xypos = {0,0};
 int		stereo = 0;
@@ -156,7 +155,7 @@ void OnKeypress(unsigned char key, int x, int y)
 
 void ClearScreen()
 {
-	memset(zBuffer, SHRT_MAX, FRAME_WIDE * FRAME_HIGH);
+	init_zbuff();
 	memset(pFrameL, 0, FRAME_WIDE * FRAME_HIGH * 3);
 	memset(pFrameR, 0, FRAME_WIDE * FRAME_HIGH * 3);
 }
@@ -205,6 +204,7 @@ void	PlaySoundEffect(char * filename)
 ////////////////////////////////////////////////////////
 bool loaded = false;
 Object temp;
+Object second;
 int counter = 0;
 Point centre;
 void BuildFrame(BYTE *pFrame, int view)
@@ -266,13 +266,16 @@ void BuildFrame(BYTE *pFrame, int view)
 		temp_properties.scale = 1;
 		temp_properties.centre = {300, 350, 100, 0, 0, 0};
 		load_vjs("cube.vjs", temp, temp_properties);
+		second = temp;
+		second.properties.centre.z += 500;
 		loaded = true;
 		translatable.push_back(&temp);
 	}
 
 	draw_object_3d(temp, pFrame);
+	draw_object_3d(second, pFrame);
 	//draw_wireframe_3d(temp, pFrame);
-	translate_3d(RIGHT, 1);
+	//translate_3d(RIGHT, 1);
 	
 	//sleep(1);
 	//usleep(100 * 1000);

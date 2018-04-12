@@ -16,6 +16,7 @@
 /*======================= Global Variables  ================================= */
 
 std::vector<Object*> translatable;
+int zBuffer[FRAME_WIDE * FRAME_HIGH];
 
 /*======================= Drawing Functions ================================= */
 void draw_pixel_2d(const Point &point, BYTE *fBuffer)
@@ -25,30 +26,33 @@ void draw_pixel_2d(const Point &point, BYTE *fBuffer)
 	BYTE r = ROUND(point.r);
 	BYTE g = ROUND(point.g);
 	BYTE b = ROUND(point.b);
-	// if (x < 0 || x > FRAME_WIDE - 1 || y < 0 || y > FRAME_HIGH - 1) {
-	// 	printf("Warning: point falls out of bounds!\n");
-	// 	return;
-	// }
+	int z =  ROUND(point.z);
+	if (z > get_zbuff(x, y)) // another pixel is in front; don't draw
+		return;
 	fBuffer[3 * (y * FRAME_WIDE + x)] = r;		// R
 	fBuffer[3 * (y * FRAME_WIDE + x) + 1] = g; 	// G
 	fBuffer[3 * (y * FRAME_WIDE + x) + 2] = b; 	// B
+	set_zbuff(x, y, z);
 }
 
-void set_zbuff(int x, int y, short z_val, short *zBuffer)
+void set_zbuff(int x, int y, int z_val)
 {
 	zBuffer[y * FRAME_WIDE + x] = z_val;
 }
 
-short get_zbuff(int x, int y, short *zBuffer)
+int get_zbuff(int x, int y)
 {
 	return zBuffer[y * FRAME_WIDE + x];
 }
 
-void draw_pixel_3d(const Point &p, BYTE *fBuffer)
+void init_zbuff()
 {
-	Point point = {(p.x * X_OFFSET / (double)(p.z + X_OFFSET)),
-				(p.y * Y_OFFSET / (double)(p.z + Y_OFFSET)),
-				p.r, p.g, p.b};
+	std::fill(zBuffer, zBuffer + FRAME_HIGH * FRAME_WIDE, INT_MAX);
+}
+
+void draw_pixel_3d(Point p, BYTE *fBuffer)
+{
+	Point point = project_point(p);
 	draw_pixel_2d(point, fBuffer);
 }
 
@@ -59,7 +63,8 @@ Point project_point(const Point &p3d)
 		((p3d.y - Y_OFFSET) * PERSPECTIVE / (double)(p3d.z + PERSPECTIVE)) + Y_OFFSET,
 		p3d.r,
 		p3d.g,
-		p3d.b
+		p3d.b,
+		p3d.z
 	};
 	return p2d;
 }
@@ -79,21 +84,16 @@ void project_polygon(const Object &obj, std::vector<Polygon_2d> &projected_polys
 void draw_line(Point p1, Point p2, BYTE *fBuffer)
 {
 	Point buffer = p1;
-	int dx = p2.x - p1.x;
-	int dy = p2.y - p1.y;
-	int steps = abs(dx) > abs(dy) ? abs(dx) : abs(dy);
-	double step_r = (p2.r - p1.r) / (double)steps;
-	double step_g = (p2.g - p1.g) / (double)steps;
-	double step_b = (p2.b - p1.b) / (double)steps;
-	double x_inc = dx / (double)steps;
-	double y_inc = dy / (double)steps;
+	Point grad = point_gradient(p2, p1);
+	double steps = abs(grad.x) > abs(grad.y) ? abs(grad.x) : abs(grad.y);
 	draw_pixel_2d(buffer, fBuffer);
 	for (int i = 0; i < steps; i++) {
-		buffer.x += x_inc;
-		buffer.y += y_inc;
-		buffer.r += step_r;
-		buffer.g += step_g;
-		buffer.b += step_b;
+		buffer.x += grad.x / steps;
+		buffer.y += grad.y / steps;
+		buffer.r += grad.r / steps;
+		buffer.g += grad.g / steps;
+		buffer.b += grad.b / steps;
+		buffer.z += grad.z / steps;
 		draw_pixel_2d(buffer, fBuffer);
 	}
 }
@@ -188,7 +188,6 @@ void draw_object_3d(const Object &obj, BYTE *fBuffer)
 	project_polygon(absolute, projected_polys); // Populates projected_polys
 	for (int i = 0; i < projected_polys.size(); i++) {
 		fill_poly(projected_polys[i], fBuffer);
-		//draw_poly(projected_polys[i], fBuffer);
 	}
 }
 
@@ -216,6 +215,7 @@ bool point_cmp(const Point &a, const Point &b)
 		&& a.r == b.r
 		&& a.g == b.g
 		&& a.b == b.b
+		&& a.z == b.z
 	);
 }
 
@@ -237,18 +237,15 @@ void fill_poly(Polygon_2d poly, BYTE *fBuffer)
 	for (int i = 0; tri_count < poly.size() - 2; i++) {
 		if (i % poly.size() == 0 && i > 0) {
 			if (poly.size() == neighbours.size())
-				break; // Prevent infinite loop in case all angles concave, eg. when plane is flipped.
+				break; // plane is flipped, all sides concave
 			poly = neighbours; // Dump the triangles that have already been drawn
 		}
 		int current = find_point(neighbours, poly[i % poly.size()]); // Wrap to beginning
 		int next_adjacent = current == neighbours.size() - 1 ? 0 : current + 1;
 		int prev_adjacent = current == 0 ? neighbours.size() - 1 : current - 1;
 		Polygon_2d tri = {neighbours[current], neighbours[next_adjacent], neighbours[prev_adjacent]};
-		if (points_inside(tri, original) ||
-			concave(neighbours[current], neighbours[prev_adjacent], neighbours[next_adjacent]))
-		{
+		if (points_inside(tri, original) || concave(neighbours[current], neighbours[prev_adjacent], neighbours[next_adjacent]))
 			continue;
-		}
 		fill_tri(tri, fBuffer);
 		neighbours.erase(neighbours.begin()+current);
 		tri_count++;
@@ -303,7 +300,8 @@ Point point_gradient(const Point &p1, const Point &p2)
 		floor(p1.y - p2.y),
 		floor(p1.r - p2.r),
 		floor(p1.g - p2.g),
-		floor(p1.b - p2.b)
+		floor(p1.b - p2.b),
+		floor(p1.z - p2.z)
 	};
 	return gradient;
 }
@@ -316,20 +314,19 @@ void round_vertices(Polygon_2d &poly)
 		poly[i].r = (double)ROUND(poly[i].r);
 		poly[i].g = (double)ROUND(poly[i].g);
 		poly[i].b = (double)ROUND(poly[i].b);
+		poly[i].z = (double)ROUND(poly[i].z);
 	}
 }
 
-//TODO: Refactor, get rid of all the local variables?
-//TODO: Fix colour overflow bug
 void fill_tri(Polygon_2d triangle, BYTE *fBuffer)
 {
 	round_vertices(triangle);
 	sort_vertices(triangle);
-	if (collinear(triangle)) {
+	if (collinear(triangle)) { // handle collinear case
 		clip_line(triangle[0], triangle[1], fBuffer);
 		clip_line(triangle[1], triangle[2], fBuffer);
 		return;
-	} // handle collinear case
+	}
 	Point start, end;
 	end = triangle[0];
 	start = triangle[0].y == triangle[1].y ? triangle[1] : triangle[0]; // handle flat-top case
@@ -344,10 +341,12 @@ void fill_tri(Polygon_2d triangle, BYTE *fBuffer)
 		start.r += start_gradient.r / start_gradient.y;
 		start.g += start_gradient.g / start_gradient.y;
 		start.b += start_gradient.b / start_gradient.y;
+		start.z += start_gradient.z / start_gradient.y; // For Z-Buffering
 		end.x   += end_gradient.x   / end_gradient.y;
 		end.r   += end_gradient.r   / end_gradient.y;
 		end.g   += end_gradient.g   / end_gradient.y;
 		end.b   += end_gradient.b   / end_gradient.y;
+		end.z   += end_gradient.z   / end_gradient.y; // For Z-Buffering
 	}
 	draw_tri(triangle, fBuffer);
 }

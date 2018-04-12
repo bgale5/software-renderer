@@ -58,11 +58,8 @@ enum Direction {
 extern std::vector<Object*> translatable;
 
 //====== Forward Declarations=========
-
-
-#endif
 void draw_pixel_2d(const Point &point, BYTE *fBuffer);
-void draw_pixel_3d(const Point &p, BYTE *fBuffer);
+void draw_pixel_3d(Point p, BYTE *fBuffer);
 Point project_point(const Point &p3d);
 void project_polygon(const struct object &obj, const Polygon_2d &p2d);
 void draw_line(Point p1, Point p2, BYTE *fBuffer);
@@ -93,3 +90,10 @@ void rotate_z(double angle);
 void rotate_x(double angle);
 void rotate_y(double angle);
 void rotate_3d(double angle_x, double angle_y, double angle_z);
+Point point_gradient(const Point &p1, const Point &p2);
+void set_zbuff(int x, int y, int z_val);
+int get_zbuff(int x, int y);
+void init_zbuff();
+
+
+#endif
