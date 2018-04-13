@@ -19,6 +19,8 @@
         "ios": "cpp",
         "string_view": "cpp",
         "bitset": "cpp",
-        "utility": "cpp"
+        "utility": "cpp",
+        "__tree": "cpp",
+        "map": "cpp"
     }
 }

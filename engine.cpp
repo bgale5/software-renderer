@@ -16,7 +16,7 @@
 /*======================= Global Variables  ================================= */
 
 std::vector<Object> world_objects;
-std::vector<Object_norms> world_surface_normals;
+//std::vector<Object_norms> world_surface_normals;
 int zBuffer[FRAME_WIDE * FRAME_HIGH];
 
 /*======================= Drawing Functions ================================= */
@@ -182,14 +182,13 @@ Object rel_to_abs(const Object &rel)
 	return absolute;
 }
 
-void draw_object_3d(const Object &obj, const Object_norms &norms, BYTE *fBuffer)
+void draw_object_3d(const Object &obj, BYTE *fBuffer)
 {
 	std::vector<Polygon> projected_polys;
 	Object absolute = rel_to_abs(obj);
 	project_polygon(absolute, projected_polys); // Populates projected_polys
 	for (int i = 0; i < projected_polys.size(); i++) {
-		if (norms[i].z > 0)
-			fill_poly(projected_polys[i], fBuffer);
+		fill_poly(projected_polys[i], fBuffer);
 	}
 }
 
@@ -528,15 +527,15 @@ void apply_translations(Point offset, std::vector<Object> &objects)
 	}
 }
 
-void apply_rotations(Rotation_offsets offset, std::vector<Object> &objects, std::vector<Object_norms> &surface_norms)
+void apply_rotations(Rotation_offsets offset, std::vector<Object> &objects)
 {
 	for (int i = 0; i < objects.size(); i++) {
 		if (!objects[i].properties.visible || objects[i].properties.fixed)
 			continue;
 		rotate_object(objects[i], offset);
-		for (int j = 0; j < surface_norms[i].size(); j++) {
-			rotate_point(surface_norms[i][j], offset);
-		}
+		// for (int j = 0; j < surface_norms[i].size(); j++) {
+		// 	rotate_point(surface_norms[i][j], offset);
+		// }
 	}
 }
 
@@ -558,85 +557,54 @@ void apply_centre(std::vector<Object> &objects)
 	}
 }
 
-void draw_objects(BYTE *fBuffer, std::vector<Object> &objects, std::vector<Object_norms> &norms)
+void draw_objects(BYTE *fBuffer, std::vector<Object> &objects)
 {
 	for (int i = 0; i < objects.size(); i++) {
 		if (!objects[i].properties.visible)
 			continue;
-		draw_object_3d(objects[i], norms[i], fBuffer);
+		draw_object_3d(objects[i], fBuffer);
 	}
 }
 
-std::vector<Polygon> get_object_polygons(const Object &obj)
+// std::vector<Polygon> get_object_polygons(const Object &obj)
+// {
+// 	std::vector<Polygon> surfaces;
+// 	for (int i = 0; i < obj.polys.size(); i++) {
+// 		Polygon_ref pol_indices = obj.polys[i];
+// 		Polygon surface;
+// 		for (int j = 0; j < pol_indices.size(); j++) {
+// 			surface.push_back(obj.vertices[pol_indices[j]]);
+// 		}
+// 		surfaces.push_back(surface);
+// 	}
+// 	return surfaces;
+// }
+
+Object_norms compute_surface_normals(const Object &obj)
 {
 	std::vector<Polygon> surfaces;
-	for (int i = 0; i < obj.polys.size(); i++) {
-		Polygon_ref pol_indices = obj.polys[i];
-		Polygon surface;
-		for (int j = 0; j < pol_indices.size(); j++) {
-			surface.push_back(obj.vertices[pol_indices[j]]);
-		}
-		surfaces.push_back(surface);
-	}
-	return surfaces;
-}
-
-// Return any 3 points that form a convex angle
-Polygon find_convex_vectors(const Polygon &surface)
-{
-	for (int i = 0; i < surface.size(); i++) {
-		Point current = surface[i];
-		Point prev = i == 0 ? surface.back() : surface[i - 1];
-		Point next = i == surface.size() - 1 ? surface[0] : surface[i + 1];
-		if (!concave(current, prev, next))
-			return {prev, current, next};
-	}
-	return {{0},{0},{0}};
-}
-
-Point point_diff(const Point &p1, const Point &p2)
-{
-	return {
-		p1.x - p2.x,
-		p1.y - p2.y,
-		p1.r - p2.r,
-		p1.g - p2.g,
-		p1.b - p2.b,
-		p1.z - p2.z
-	};
-}
-
-void normalize_vector(Point &vector)
-{
-	double L = sqrt(SQR(vector.x) + SQR(vector.y) + SQR(vector.z));
-	vector.x /= L;
-	vector.y /= L;
-	vector.z /= L;
-}
-
-std::vector<Point> compute_surface_normals(const Object &obj)
-{
-	std::vector<Polygon> surfaces = get_object_polygons(obj);
+	project_polygon(obj, surfaces);
 	Object_norms surface_normals;
 	for (int i = 0; i < surfaces.size(); i++) {
-		Point N;
-		// vectors prev --> current & current --> next
-		Polygon convex_vects = find_convex_vectors(surfaces[i]);
-		Point V1 = point_diff(convex_vects[1], convex_vects[0]);
-		Point V2 = point_diff(convex_vects[2], convex_vects[1]);
-		normalize_vector(V1);
-		normalize_vector(V2);
-		// Compute the cross product
-		N.x = V1.y * V2.z - V1.z * V2.y;
-		N.y = V1.z * V2.x - V1.x * V2.z;
-		N.z = V1.x * V2.y - V1.y * V2.x;
+		double N = polygon_area(surfaces[i]);
 		surface_normals.push_back(N);
 	}
 	return surface_normals;
 }
 
-void spawn_object(const Object &obj)
+double polygon_area(const Polygon &poly) // shoelace method
 {
-	world_objects.push_back(obj);
-	world_surface_normals.push_back(compute_surface_normals(obj));
+	double down = 0;
+	double up = 0;
+	for (int i = 0; i < poly.size(); i++) {
+		if (i == poly.size() - 1) {
+			down += poly[i].x * poly[0].y;
+			up += poly[i].y * poly[0].x;
+		}
+		else {
+			down += poly[i].x * poly[i + 1].x;
+			up += poly[i].y * poly[i + 1].y;
+		}
+	}
+	return 1 / 2 * (down - up);
 }
