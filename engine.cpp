@@ -187,8 +187,11 @@ void draw_object_3d(const Object &obj, BYTE *fBuffer)
 	std::vector<Polygon> projected_polys;
 	Object absolute = rel_to_abs(obj);
 	project_polygon(absolute, projected_polys); // Populates projected_polys
+	Object_norms norms = compute_surface_normals(obj);
 	for (int i = 0; i < projected_polys.size(); i++) {
-		fill_poly(projected_polys[i], fBuffer);
+		double test = norms[i];
+		if (norms[i] > 0)
+			fill_poly(projected_polys[i], fBuffer);
 	}
 }
 
@@ -566,20 +569,6 @@ void draw_objects(BYTE *fBuffer, std::vector<Object> &objects)
 	}
 }
 
-// std::vector<Polygon> get_object_polygons(const Object &obj)
-// {
-// 	std::vector<Polygon> surfaces;
-// 	for (int i = 0; i < obj.polys.size(); i++) {
-// 		Polygon_ref pol_indices = obj.polys[i];
-// 		Polygon surface;
-// 		for (int j = 0; j < pol_indices.size(); j++) {
-// 			surface.push_back(obj.vertices[pol_indices[j]]);
-// 		}
-// 		surfaces.push_back(surface);
-// 	}
-// 	return surfaces;
-// }
-
 Object_norms compute_surface_normals(const Object &obj)
 {
 	std::vector<Polygon> surfaces;
@@ -606,5 +595,5 @@ double polygon_area(const Polygon &poly) // shoelace method
 			up += poly[i].y * poly[i + 1].y;
 		}
 	}
-	return 1 / 2 * (down - up);
+	return 1 / 2.0 * (down - up);
 }
