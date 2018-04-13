@@ -119,26 +119,34 @@ bool clip_test(double p, double q, double &u1, double &u2)
 
 void clip_line(Point p1, Point p2, BYTE *fBuffer)
 {
-	double dx = p2.x - p1.x;
-	double dy;
+	//double dx = p2.x - p1.x;
+	Point d = point_gradient(p2, p1);
+	
+	//double dy;
 	double u1 = 0.0;
 	double u2 = 1.0;
 	int min_x = 0;
 	int max_x = FRAME_WIDE - 1;
 	int min_y = 0;
 	int max_y = FRAME_HIGH - 1;
-	if (clip_test(-dx, p1.x - min_x, u1, u2)) {
-		if (clip_test(dx, max_x - p1.x, u1, u2)) {
-			dy = p2.y - p1.y;
-			if (clip_test(-dy, p1.y - min_y, u1, u2)) {
-				if (clip_test(dy, max_y - p1.y, u1, u2)) {
+	if (clip_test(-d.x, p1.x - min_x, u1, u2)) {
+		if (clip_test(d.x, max_x - p1.x, u1, u2)) {
+			//dy = p2.y - p1.y;
+			if (clip_test(-d.y, p1.y - min_y, u1, u2)) {
+				if (clip_test(d.y, max_y - p1.y, u1, u2)) {
 					if (u2 < 1) {
-						p2.x = p1.x + u2 * dx;
-						p2.y = p1.y + u2 * dy;
+						p2.x = p1.x + u2 * d.x;
+						p2.y = p1.y + u2 * d.y;
+						p2.r = p1.r + u2 * d.r;
+						p2.g = p1.g + u2 * d.g;
+						p2.b = p1.b + u2 * d.b;
 					}
 					if (u1 > 0) {
-						p1.x += u1 * dx;
-						p1.y += u1 * dy;
+						p1.x += u1 * d.x;
+						p1.y += u1 * d.y;
+						p1.r += u1 * d.r;
+						p1.g += u1 * d.g;
+						p1.b += u1 * d.b;
 					}
 					draw_line(p1, p2, fBuffer);
 				}
