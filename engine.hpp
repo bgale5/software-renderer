@@ -101,7 +101,7 @@ void apply_translations(Point offset, std::vector<Object> &objects=world_objects
 void apply_scale(double offset, std::vector<Object> &objects=world_objects);
 void apply_centre(std::vector<Object> &objects=world_objects);
 void spawn_object(const Object &obj);
-double polygon_area(const Polygon &poly);
+long polygon_area(Polygon poly);
 void draw_objects(BYTE *fBuffer, std::vector<Object> &objects);
 void apply_centre(std::vector<Object> &objects);
 void apply_rotations(Rotation_offsets offset, std::vector<Object> &objects);

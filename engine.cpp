@@ -16,7 +16,6 @@
 /*======================= Global Variables  ================================= */
 
 std::vector<Object> world_objects;
-//std::vector<Object_norms> world_surface_normals;
 int zBuffer[FRAME_WIDE * FRAME_HIGH];
 
 /*======================= Drawing Functions ================================= */
@@ -189,8 +188,8 @@ void draw_object_3d(const Object &obj, BYTE *fBuffer)
 	project_polygon(absolute, projected_polys); // Populates projected_polys
 	Object_norms norms = compute_surface_normals(obj);
 	for (int i = 0; i < projected_polys.size(); i++) {
-		double test = norms[i];
-		if (norms[i] > 0)
+		long test = norms[i];
+		//if (norms[i] > 0)
 			fill_poly(projected_polys[i], fBuffer);
 	}
 }
@@ -353,7 +352,7 @@ void fill_tri(Polygon triangle, BYTE *fBuffer)
 		end.b   += end_gradient.b   / end_gradient.y;
 		end.z   += end_gradient.z   / end_gradient.y; // For Z-Buffering
 	}
-	//draw_tri(triangle, fBuffer); // Hide any rounding artifacts
+	draw_tri(triangle, fBuffer); // Hide any rounding artifacts
 }
 
 Point rand_point()
@@ -581,19 +580,24 @@ Object_norms compute_surface_normals(const Object &obj)
 	return surface_normals;
 }
 
-double polygon_area(const Polygon &poly) // shoelace method
+long polygon_area(Polygon poly) // shoelace method
 {
-	double down = 0;
-	double up = 0;
+	//round_vertices(poly);
+	long  area = 0;
 	for (int i = 0; i < poly.size(); i++) {
-		if (i == poly.size() - 1) {
-			down += poly[i].x * poly[0].y;
-			up += poly[i].y * poly[0].x;
+		if (i == poly.size() -1) {
+			area += poly[i].x * poly[0].y;
+			area -= poly[i].y * poly[0].x;
 		}
 		else {
-			down += poly[i].x * poly[i + 1].x;
-			up += poly[i].y * poly[i + 1].y;
+			area += poly[i].x * poly[i + 1].y;
+			area -= poly[i].y * poly[i + 1].x;
 		}
 	}
-	return 1 / 2.0 * (down - up);
+	Point test1 = poly[0];
+	Point test2 = poly[1];
+	Point test3 = poly[2];
+	Point test4 = poly[3];
+	double size = poly.size();
+	return area;
 }
