@@ -222,7 +222,7 @@ if (!loaded) {
 		temp_properties.centre = {300, 350, 100, 0, 0, 0};
 		temp.properties.visible = true;
 		temp.properties.fixed = false;
-		load_vjs("cube.vjs", temp, temp_properties);
+		load_vjs("wedge.vjs", temp, temp_properties);
 		loaded = true;
 		world_objects.push_back(temp);
 	}
