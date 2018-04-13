@@ -202,6 +202,7 @@ void draw_wireframe_3d(const Object &obj, BYTE *fBuffer)
 			polys[i][j].r = 255;
 			polys[i][j].g = 255;
 			polys[i][j].b = 255;
+			//polys[i][j].z -= 1;
 		}
 		draw_poly(polys[i], fBuffer);
 	}
@@ -297,12 +298,12 @@ bool collinear(const Polygon &tri)
 Point point_gradient(const Point &p1, const Point &p2)
 {
 	Point gradient = {
-		floor(p1.x - p2.x),
-		floor(p1.y - p2.y),
-		floor(p1.r - p2.r),
-		floor(p1.g - p2.g),
-		floor(p1.b - p2.b),
-		floor(p1.z - p2.z)
+		(double)ROUND(p1.x) - (double)ROUND(p2.x),
+		(double)ROUND(p1.y) - (double)ROUND(p2.y),
+		(double)ROUND(p1.r) - (double)ROUND(p2.r),
+		(double)ROUND(p1.g) - (double)ROUND(p2.g),
+		(double)ROUND(p1.b) - (double)ROUND(p2.b),
+		(double)ROUND(p1.z) - (double)ROUND(p2.z)
 	};
 	return gradient;
 }
@@ -349,7 +350,7 @@ void fill_tri(Polygon triangle, BYTE *fBuffer)
 		end.b   += end_gradient.b   / end_gradient.y;
 		end.z   += end_gradient.z   / end_gradient.y; // For Z-Buffering
 	}
-	draw_tri(triangle, fBuffer);
+	draw_tri(triangle, fBuffer); // Hide any rounding artifacts
 }
 
 Point rand_point()
@@ -455,28 +456,16 @@ void load_vjs(std::string fpath, Object &obj, const Object_attribs &properties)
 
 // TODO: Refactor so it just takes a Point containing offsets,
 // removing need for switch
-void translate_3d(Direction d, double offset) 
+void translate_3d(Object &obj, Point &offsets) 
 {
-	double x_offset = 0;
-	double y_offset = 0;
-	double z_offset = 0;
-	double s_offset = 0; // scale
-	switch (d) {
-		case UP: 	y_offset 	  -= offset; break;
-		case DOWN: 	y_offset 	  += offset; break;
-		case LEFT: 	x_offset 	  -= offset; break;
-		case RIGHT: x_offset 	  += offset; break;
-		case IN: 	z_offset 	  += offset; break;
-		case OUT: 	z_offset 	  -= offset; break;
-		case SCALE_UP: s_offset   += offset; break;
-		case SCALE_DOWN: s_offset -= offset; break;
-	}
-	for (int i = 0; i < translatable.size(); i++) {
-		translatable[i]->properties.centre.x += x_offset;
-		translatable[i]->properties.centre.y += y_offset;
-		translatable[i]->properties.centre.z += z_offset;
-		translatable[i]->properties.scale	+= s_offset;
-	}
+	obj.properties.centre.x += offsets.x;
+	obj.properties.centre.y += offsets.y;
+	obj.properties.centre.z += offsets.z;
+}
+
+void scale_3d(Object &obj, double offset)
+{
+	obj.properties.scale += offset;
 }
 
 void translate_2d(Polygon &poly, const Point &offset)
@@ -487,62 +476,86 @@ void translate_2d(Polygon &poly, const Point &offset)
 	}
 }
 
-void rotate_z(double angle)
+void rotate_3d(Object &obj, Rotation_offsets offset)
 {
-	for (int p = 0; p < translatable.size(); p++) {
-		Object *obj = translatable[p];
-		for (int i = 0; i < obj->vertices.size(); i++) {
-			Point vert = obj->vertices[i];
-			double new_x = vert.x * cos(angle) - vert.y * sin(angle);
-			double new_y = vert.x * sin(angle) + vert.y * cos(angle);
-			obj->vertices[i].x = new_x;
-			obj->vertices[i].y = new_y;
+	double x = 0, y = 0, z = 0;
+	for (int i = 0; i < obj.vertices.size(); i++) {
+		Point &vert = obj.vertices[i];
+		// About X
+		if (offset.x) {
+			y = vert.y * cos(offset.x) - vert.z * sin(offset.x);
+			z = vert.y * sin(offset.x) + vert.z * cos(offset.x);
+			obj.vertices[i].y = y;
+			obj.vertices[i].z = z;
+		}
+		// About Y
+		if (offset.y) {
+			z = vert.z * cos(offset.y) - vert.x * sin(offset.y);
+			x = vert.z * sin(offset.y) + vert.x * cos(offset.y);
+			obj.vertices[i].z = z;
+			obj.vertices[i].x = x;
+		}
+		// About Z
+		if (offset.z) {
+			x = vert.x * cos(offset.z) - vert.y * sin(offset.z);
+			y = vert.x * sin(offset.z) + vert.y * cos(offset.z);
+			obj.vertices[i].x = x;
+			obj.vertices[i].y = y;
 		}
 	}
 }
 
-void rotate_x(double angle)
+void centre_3d(Object &obj)
 {
-	for (int p = 0; p < translatable.size(); p++) {
-		Object *obj = translatable[p];
-		for (int i = 0; i < obj->vertices.size(); i++) {
-			Point vert = obj->vertices[i];
-			double new_y = vert.y * cos(angle) - vert.z * sin(angle);
-			double new_z = vert.y * sin(angle) + vert.z * cos(angle);
-			obj->vertices[i].y = new_y;
-			obj->vertices[i].z = new_z;
-		}
+		obj.properties.centre.x = FRAME_WIDE / 2;
+		obj.properties.centre.y = FRAME_HIGH / 2;
+		obj.properties.centre.z = 0;
+		obj.properties.scale = 1;
+}
+
+void apply_translations(Point offset, std::vector<Object> &objects)
+{
+	for (int i = 0; i < objects.size(); i++)
+	{
+		if (!objects[i].properties.visible || objects[i].properties.fixed)
+			continue;
+		translate_3d(objects[i], offset);
 	}
 }
 
-void rotate_y(double angle)
+void apply_rotations(Rotation_offsets offset, std::vector<Object> &objects)
 {
-	for (int p = 0; p < translatable.size(); p++) {
-		Object *obj = translatable[p];
-		for (int i = 0; i < obj->vertices.size(); i++) {
-			Point vert = obj->vertices[i];
-			double new_z = vert.z * cos(angle) - vert.x * sin(angle);
-			double new_x = vert.z * sin(angle) + vert.x * cos(angle);
-			obj->vertices[i].z = new_z;
-			obj->vertices[i].x = new_x;
-		}
+	for (int i = 0; i < objects.size(); i++) {
+		if (!objects[i].properties.visible || objects[i].properties.fixed)
+			continue;
+		rotate_3d(objects[i], offset);
 	}
 }
 
-void rotate_3d(double angle_x, double angle_y, double angle_z)
+void apply_scale(double offset, std::vector<Object> &objects)
 {
-	rotate_x(angle_x);
-	rotate_y(angle_y);
-	rotate_z(angle_z);
+	for (int i = 0; i < objects.size(); i++) {
+		if (!objects[i].properties.visible || objects[i].properties.fixed)
+			continue;
+		scale_3d(objects[i], offset);
+	}
 }
 
-void centre_3d()
+void apply_centre(std::vector<Object> &objects)
 {
-	for (int i = 0; i < translatable.size(); i++) {
-		translatable[i]->properties.centre.x = FRAME_WIDE / 2;
-		translatable[i]->properties.centre.y = FRAME_HIGH / 2;
-		translatable[i]->properties.centre.z = 0;
-		translatable[i]->properties.scale = 1;
+	for (int i = 0; i < objects.size(); i++) {
+		if (!objects[i].properties.visible || objects[i].properties.fixed)
+			continue;
+		centre_3d(objects[i]);
+	}
+}
+
+void draw_objects(BYTE *fBuffer, std::vector<Object> &objects)
+{
+	for (int i = 0; i < objects.size(); i++) {
+		if (!objects[i].properties.visible)
+			continue;
+		draw_object_3d(objects[i], fBuffer);
 	}
 }
 
@@ -604,7 +617,7 @@ void compute_surface_normals(const Object &obj, std::vector<Point> &surface_norm
 		Point V2 = point_diff(convex_vects[2], convex_vects[1]);
 		normalize_vector(V1);
 		normalize_vector(V2);
-		// Compute the corss product
+		// Compute the cross product
 		N.x = V1.y * V2.z - V1.z * V2.y;
 		N.y = V1.z * V2.x - V1.x * V2.z;
 		N.z = V1.x * V2.y - V1.y * V2.x;

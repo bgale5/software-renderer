@@ -20,6 +20,7 @@
 #define NumSidesPoly 20 //600
 #define TRANSLATION_FACTOR 10
 #define ROTATION_FACTOR 2 * M_PI / 360
+#define SCALE_FACTOR 0.05
 
 //====== Structs & typedefs =========
 typedef unsigned char BYTE;
@@ -36,6 +37,8 @@ typedef std::vector<int> Polygon_ref;
 typedef struct object_attribs {
 	Point centre;
 	double scale;
+	bool visible = true;
+	bool fixed = false;
 } Object_attribs;
 
 typedef struct object {
@@ -43,22 +46,12 @@ typedef struct object {
 	int vertex_count, poly_count;
 	std::vector<Polygon_ref> polys;
 	std::vector<Point> vertices;
-	bool visible = 0;
-	bool fixed = 0;
 } Object;
 
-enum Direction {
-	LEFT,
-	RIGHT,
-	UP,
-	DOWN,
-	IN,
-	OUT, 
-	SCALE_UP,
-	SCALE_DOWN
-};
+typedef struct rotation_offsets {
+	double x = 0, y = 0, z = 0;
+} Rotation_offsets;
 
-extern std::vector<Object*> translatable; // TODO: refactor
 // world_objects and surface_normals are parralel arrays and should
 // not be independently modified.
 extern std::vector<Object> world_objects;
@@ -88,19 +81,23 @@ void fill_tri(Polygon triangle, BYTE *fBuffer);
 Point rand_point();
 void sort_vertices(Polygon &triangle);
 void load_vjs(std::string fpath, Object &obj, const Object_attribs &properties);
-void translate_3d(Direction d, double offset);
+
+void translate_2d(Polygon &poly, const Point &offset);
 void centre_3d();
 Polygon rand_polygon(const Point &centre, double angle_increment);
 void translate_2d(Polygon &poly, const Point &offset);
 void round_vertices(Polygon &poly);
-void rotate_z(double angle);
-void rotate_x(double angle);
-void rotate_y(double angle);
-void rotate_3d(double angle_x, double angle_y, double angle_z);
+void rotate_3d(Object &obj, Rotation_offsets offset);
 Point point_gradient(const Point &p1, const Point &p2);
+
 void set_zbuff(int x, int y, int z_val);
 int get_zbuff(int x, int y);
 void init_zbuff();
-
+void compute_surface_normals(const Object &obj, std::vector<Point> &surface_normals);
+void apply_translations(Point offset, std::vector<Object> &objects=world_objects);
+void apply_rotations(Rotation_offsets offset, std::vector<Object> &objects=world_objects);
+void apply_scale(double offset, std::vector<Object> &objects=world_objects);
+void apply_centre(std::vector<Object> &objects=world_objects);
+void draw_objects(BYTE *fBuffer, std::vector<Object> &objects=world_objects);
 
 #endif

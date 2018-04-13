@@ -127,22 +127,23 @@ void OnKeypress(unsigned char key, int x, int y)
 	case ']': eyes++;	break;
 	case '[': eyes--;	break;
 	case 27 : exit(0); break;
-	case 's': translate_3d(DOWN, TRANSLATION_FACTOR); break;
-	case 'w': translate_3d(UP, TRANSLATION_FACTOR); break;
-	case 'a': translate_3d(LEFT, TRANSLATION_FACTOR); break;
-	case 'd': translate_3d(RIGHT, TRANSLATION_FACTOR); break;
-	case 'i': translate_3d(IN, TRANSLATION_FACTOR); break;
-	case 'o': translate_3d(OUT, TRANSLATION_FACTOR); break;
-	case '=': translate_3d(SCALE_UP, TRANSLATION_FACTOR / 100.0); break;
-	case '-': translate_3d(SCALE_DOWN, TRANSLATION_FACTOR / 100.0); break;
-	case 'c': centre_3d(); break;
-	case 'z': rotate_z(ROTATION_FACTOR); break;
-	case 'x': rotate_x(ROTATION_FACTOR); break;
-	case 'y': rotate_y(ROTATION_FACTOR); break;
-	case 'Z': rotate_z(-ROTATION_FACTOR); break;
-	case 'X': rotate_x(-ROTATION_FACTOR); break;
-	case 'Y': rotate_y(-ROTATION_FACTOR); break;
-	case 'r': rotate_3d(ROTATION_FACTOR, ROTATION_FACTOR, 0);
+	case 's': apply_translations({0, TRANSLATION_FACTOR, 0, 0, 0, 0}); break;
+	case 'w': apply_translations({0, -TRANSLATION_FACTOR, 0, 0, 0, 0}); break;
+	case 'a': apply_translations({-TRANSLATION_FACTOR, 0, 0, 0, 0, 0}); break;
+	case 'd': apply_translations({TRANSLATION_FACTOR, 0, 0, 0, 0, 0}); break;
+	case 'i': apply_translations({0, 0, 0, 0, 0, TRANSLATION_FACTOR}); break;
+	case 'o': apply_translations({0, 0, 0, 0, 0, -TRANSLATION_FACTOR}); break;
+	case '=': apply_scale(SCALE_FACTOR); break;
+	case '-': apply_scale(-SCALE_FACTOR); break;
+	case 'c': apply_centre(); break;
+	case 'z': apply_rotations({0, 0, ROTATION_FACTOR}); break;
+	case 'x': apply_rotations({ROTATION_FACTOR, 0, 0}); break;
+	case 'y': apply_rotations({0, ROTATION_FACTOR, 0}); break;
+	case 'Z': apply_rotations({0, 0, -ROTATION_FACTOR}); break;
+	case 'X': apply_rotations({-ROTATION_FACTOR, 0, 0}); break;
+	case 'Y': apply_rotations({0, -ROTATION_FACTOR, 0}); break;
+	case 'r': apply_rotations({ROTATION_FACTOR, ROTATION_FACTOR, ROTATION_FACTOR}); break;
+	case 'R': apply_rotations({-ROTATION_FACTOR, -ROTATION_FACTOR, -ROTATION_FACTOR}); break;
 	}
 	//PlaySoundEffect("Whoosh.wav"); 
 }
@@ -204,30 +205,30 @@ void	PlaySoundEffect(char * filename)
 ////////////////////////////////////////////////////////
 bool loaded = false;
 Object temp;
-Object second;
 int counter = 0;
 Point centre;
 void BuildFrame(BYTE *pFrame, int view)
 {
 	// -------  POLY TEST ----- //
 
-	Polygon poly = rand_polygon({FRAME_WIDE / 2, FRAME_HIGH / 2, 0, 0, 0}, M_PI / 5);
-	fill_poly(poly, pFrame);
+	// Polygon poly = rand_polygon({FRAME_WIDE / 2, FRAME_HIGH / 2, 0, 0, 0}, M_PI / 5);
+	// fill_poly(poly, pFrame);
 
 	// ----------- VJS LOAD TEST --------//
 
-	if (!loaded) {
+if (!loaded) {
 		Object_attribs temp_properties;
 		temp_properties.scale = 1;
 		temp_properties.centre = {300, 350, 100, 0, 0, 0};
+		temp.properties.visible = true;
+		temp.properties.fixed = false;
 		load_vjs("cube.vjs", temp, temp_properties);
 		loaded = true;
-		translatable.push_back(&temp);
+		world_objects.push_back(temp);
 	}
 
-	draw_object_3d(temp, pFrame);
-	draw_object_3d(second, pFrame);
-	//draw_wireframe_3d(temp, pFrame);
+	draw_objects(pFrame, world_objects);
+
 	//translate_3d(RIGHT, 1);
 	
 	//sleep(1);
