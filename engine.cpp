@@ -197,7 +197,7 @@ void draw_object_3d(const Object &obj, BYTE *fBuffer)
 	Object_norms norms = compute_surface_normals(obj);
 	for (int i = 0; i < projected_polys.size(); i++) {
 		long test = norms[i];
-		//if (norms[i] > 0)
+		if (norms[i] > 0)
 			fill_poly(projected_polys[i], fBuffer);
 	}
 }
@@ -573,6 +573,7 @@ void draw_objects(BYTE *fBuffer, std::vector<Object> &objects)
 		if (!objects[i].properties.visible)
 			continue;
 		draw_object_3d(objects[i], fBuffer);
+		draw_wireframe_3d(objects[i], fBuffer);
 	}
 }
 
