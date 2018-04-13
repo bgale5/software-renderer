@@ -136,14 +136,14 @@ void OnKeypress(unsigned char key, int x, int y)
 	case '=': apply_scale(SCALE_FACTOR); break;
 	case '-': apply_scale(-SCALE_FACTOR); break;
 	case 'c': apply_centre(); break;
-	case 'z': apply_rotations({0, 0, ROTATION_FACTOR}); break;
-	case 'x': apply_rotations({ROTATION_FACTOR, 0, 0}); break;
-	case 'y': apply_rotations({0, ROTATION_FACTOR, 0}); break;
-	case 'Z': apply_rotations({0, 0, -ROTATION_FACTOR}); break;
-	case 'X': apply_rotations({-ROTATION_FACTOR, 0, 0}); break;
-	case 'Y': apply_rotations({0, -ROTATION_FACTOR, 0}); break;
-	case 'r': apply_rotations({ROTATION_FACTOR, ROTATION_FACTOR, ROTATION_FACTOR}); break;
-	case 'R': apply_rotations({-ROTATION_FACTOR, -ROTATION_FACTOR, -ROTATION_FACTOR}); break;
+	case 'z': apply_rotations({0, 0, ROTATION_FACTOR}, world_objects, world_surface_normals); break;
+	case 'x': apply_rotations({ROTATION_FACTOR, 0, 0}, world_objects, world_surface_normals); break;
+	case 'y': apply_rotations({0, ROTATION_FACTOR, 0}, world_objects, world_surface_normals); break;
+	case 'Z': apply_rotations({0, 0, -ROTATION_FACTOR}, world_objects, world_surface_normals); break;
+	case 'X': apply_rotations({-ROTATION_FACTOR, 0, 0}, world_objects, world_surface_normals); break;
+	case 'Y': apply_rotations({0, -ROTATION_FACTOR, 0}, world_objects, world_surface_normals); break;
+	case 'r': apply_rotations({ROTATION_FACTOR, ROTATION_FACTOR, ROTATION_FACTOR}, world_objects, world_surface_normals); break;
+	case 'R': apply_rotations({-ROTATION_FACTOR, -ROTATION_FACTOR, -ROTATION_FACTOR}, world_objects, world_surface_normals); break;
 	}
 	//PlaySoundEffect("Whoosh.wav"); 
 }
@@ -224,7 +224,8 @@ if (!loaded) {
 		temp.properties.fixed = false;
 		load_vjs("cube.vjs", temp, temp_properties);
 		loaded = true;
-		world_objects.push_back(temp);
+		//world_objects.push_back(temp);
+		spawn_object(temp);
 	}
 
 	draw_objects(pFrame, world_objects);

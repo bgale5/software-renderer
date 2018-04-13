@@ -15,8 +15,8 @@
 
 /*======================= Global Variables  ================================= */
 
-std::vector<Object*> translatable;
 std::vector<Object> world_objects;
+std::vector<Object_norms> world_surface_normals;
 int zBuffer[FRAME_WIDE * FRAME_HIGH];
 
 /*======================= Drawing Functions ================================= */
@@ -476,32 +476,36 @@ void translate_2d(Polygon &poly, const Point &offset)
 	}
 }
 
-void rotate_3d(Object &obj, Rotation_offsets offset)
+void rotate_object(Object &obj, Rotation_offsets offset)
+{
+	for (int i = 0; i < obj.vertices.size(); i++) {
+		rotate_point(obj.vertices[i], offset);
+	}
+}
+
+void rotate_point(Point &point, Rotation_offsets offset)
 {
 	double x = 0, y = 0, z = 0;
-	for (int i = 0; i < obj.vertices.size(); i++) {
-		Point &vert = obj.vertices[i];
-		// About X
-		if (offset.x) {
-			y = vert.y * cos(offset.x) - vert.z * sin(offset.x);
-			z = vert.y * sin(offset.x) + vert.z * cos(offset.x);
-			obj.vertices[i].y = y;
-			obj.vertices[i].z = z;
-		}
-		// About Y
-		if (offset.y) {
-			z = vert.z * cos(offset.y) - vert.x * sin(offset.y);
-			x = vert.z * sin(offset.y) + vert.x * cos(offset.y);
-			obj.vertices[i].z = z;
-			obj.vertices[i].x = x;
-		}
-		// About Z
-		if (offset.z) {
-			x = vert.x * cos(offset.z) - vert.y * sin(offset.z);
-			y = vert.x * sin(offset.z) + vert.y * cos(offset.z);
-			obj.vertices[i].x = x;
-			obj.vertices[i].y = y;
-		}
+	// About X
+	if (offset.x) {
+		y = point.y * cos(offset.x) - point.z * sin(offset.x);
+		z = point.y * sin(offset.x) + point.z * cos(offset.x);
+		point.y = y;
+		point.z = z;
+	}
+	// About Y
+	if (offset.y) {
+		z = point.z * cos(offset.y) - point.x * sin(offset.y);
+		x = point.z * sin(offset.y) + point.x * cos(offset.y);
+		point.z = z;
+		point.x = x;
+	}
+	// About Z
+	if (offset.z) {
+		x = point.x * cos(offset.z) - point.y * sin(offset.z);
+		y = point.x * sin(offset.z) + point.y * cos(offset.z);
+		point.x = x;
+		point.y = y;
 	}
 }
 
@@ -523,12 +527,15 @@ void apply_translations(Point offset, std::vector<Object> &objects)
 	}
 }
 
-void apply_rotations(Rotation_offsets offset, std::vector<Object> &objects)
+void apply_rotations(Rotation_offsets offset, std::vector<Object> &objects, std::vector<Object_norms> &surface_norms)
 {
 	for (int i = 0; i < objects.size(); i++) {
 		if (!objects[i].properties.visible || objects[i].properties.fixed)
 			continue;
-		rotate_3d(objects[i], offset);
+		rotate_object(objects[i], offset);
+		// for (int j = 0; j < surface_norms[i].size(); j++) {
+		// 	rotate_point(surface_norms[i][j], offset);
+		// }
 	}
 }
 
@@ -566,7 +573,7 @@ std::vector<Polygon> get_object_polygons(const Object &obj)
 		Polygon_ref pol_indices = obj.polys[i];
 		Polygon surface;
 		for (int j = 0; j < pol_indices.size(); j++) {
-			surface.push_back(obj.vertices[pol_indices[i]]);
+			surface.push_back(obj.vertices[pol_indices[j]]);
 		}
 		surfaces.push_back(surface);
 	}
@@ -606,9 +613,10 @@ void normalize_vector(Point &vector)
 	vector.z /= L;
 }
 
-void compute_surface_normals(const Object &obj, std::vector<Point> &surface_normals)
+std::vector<Point> compute_surface_normals(const Object &obj)
 {
 	std::vector<Polygon> surfaces = get_object_polygons(obj);
+	Object_norms surface_normals;
 	for (int i = 0; i < surfaces.size(); i++) {
 		Point N;
 		// vectors prev --> current & current --> next
@@ -621,5 +629,13 @@ void compute_surface_normals(const Object &obj, std::vector<Point> &surface_norm
 		N.x = V1.y * V2.z - V1.z * V2.y;
 		N.y = V1.z * V2.x - V1.x * V2.z;
 		N.z = V1.x * V2.y - V1.y * V2.x;
+		surface_normals.push_back(N);
 	}
+	return surface_normals;
+}
+
+void spawn_object(const Object &obj)
+{
+	world_objects.push_back(obj);
+	world_surface_normals.push_back(compute_surface_normals(obj));
 }

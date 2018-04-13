@@ -48,6 +48,8 @@ typedef struct object {
 	std::vector<Point> vertices;
 } Object;
 
+typedef std::vector<Point> Object_norms;
+
 typedef struct rotation_offsets {
 	double x = 0, y = 0, z = 0;
 } Rotation_offsets;
@@ -55,7 +57,7 @@ typedef struct rotation_offsets {
 // world_objects and surface_normals are parralel arrays and should
 // not be independently modified.
 extern std::vector<Object> world_objects;
-extern std::vector<Point> surface_normals;
+extern std::vector<Object_norms> world_surface_normals;
 
 //====== Forward Declarations=========
 void draw_pixel_2d(const Point &point, BYTE *fBuffer);
@@ -87,7 +89,8 @@ void centre_3d();
 Polygon rand_polygon(const Point &centre, double angle_increment);
 void translate_2d(Polygon &poly, const Point &offset);
 void round_vertices(Polygon &poly);
-void rotate_3d(Object &obj, Rotation_offsets offset);
+void rotate_object(Object &obj, Rotation_offsets offset);
+void rotate_point(Point &point, Rotation_offsets offset);
 Point point_gradient(const Point &p1, const Point &p2);
 
 void set_zbuff(int x, int y, int z_val);
@@ -95,9 +98,10 @@ int get_zbuff(int x, int y);
 void init_zbuff();
 void compute_surface_normals(const Object &obj, std::vector<Point> &surface_normals);
 void apply_translations(Point offset, std::vector<Object> &objects=world_objects);
-void apply_rotations(Rotation_offsets offset, std::vector<Object> &objects=world_objects);
 void apply_scale(double offset, std::vector<Object> &objects=world_objects);
 void apply_centre(std::vector<Object> &objects=world_objects);
 void draw_objects(BYTE *fBuffer, std::vector<Object> &objects=world_objects);
+void spawn_object(const Object &obj);
+void apply_rotations(Rotation_offsets offset, std::vector<Object> &objects=world_objects, std::vector<Object_norms> &surface_norms=world_surface_normals);
 
 #endif
