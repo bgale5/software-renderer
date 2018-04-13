@@ -69,7 +69,7 @@ bool clip_test(double p, double q, double &u1, double &u2);
 void clip_line(Point p1, Point p2, BYTE *fBuffer);
 void draw_tri(const Polygon &tri, BYTE *fBuffer);
 void draw_poly(const Polygon &poly, BYTE *fBuffer);
-void draw_object_3d(const struct object &obj, BYTE *fBuffer);
+void draw_object_3d(const struct object &obj, const Object_norms &norms, BYTE *fBuffer);
 void draw_wireframe_3d(const struct object &obj, BYTE *fBuffer);
 bool point_cmp(const Point &a, const Point &b);
 int find_point(const Polygon &neighbours, const Point &point);
@@ -100,7 +100,7 @@ void compute_surface_normals(const Object &obj, std::vector<Point> &surface_norm
 void apply_translations(Point offset, std::vector<Object> &objects=world_objects);
 void apply_scale(double offset, std::vector<Object> &objects=world_objects);
 void apply_centre(std::vector<Object> &objects=world_objects);
-void draw_objects(BYTE *fBuffer, std::vector<Object> &objects=world_objects);
+void draw_objects(BYTE *fBuffer, std::vector<Object> &objects=world_objects, std::vector<Object_norms> &norms=world_surface_normals);
 void spawn_object(const Object &obj);
 void apply_rotations(Rotation_offsets offset, std::vector<Object> &objects=world_objects, std::vector<Object_norms> &surface_norms=world_surface_normals);
 

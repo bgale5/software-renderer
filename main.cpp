@@ -228,7 +228,7 @@ if (!loaded) {
 		spawn_object(temp);
 	}
 
-	draw_objects(pFrame, world_objects);
+	draw_objects(pFrame, world_objects, world_surface_normals);
 	
 	//sleep(1);
 	//usleep(100 * 1000);

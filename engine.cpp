@@ -182,13 +182,14 @@ Object rel_to_abs(const Object &rel)
 	return absolute;
 }
 
-void draw_object_3d(const Object &obj, BYTE *fBuffer)
+void draw_object_3d(const Object &obj, const Object_norms &norms, BYTE *fBuffer)
 {
 	std::vector<Polygon> projected_polys;
 	Object absolute = rel_to_abs(obj);
 	project_polygon(absolute, projected_polys); // Populates projected_polys
 	for (int i = 0; i < projected_polys.size(); i++) {
-		fill_poly(projected_polys[i], fBuffer);
+		if (norms[i].z > 0)
+			fill_poly(projected_polys[i], fBuffer);
 	}
 }
 
@@ -533,9 +534,9 @@ void apply_rotations(Rotation_offsets offset, std::vector<Object> &objects, std:
 		if (!objects[i].properties.visible || objects[i].properties.fixed)
 			continue;
 		rotate_object(objects[i], offset);
-		// for (int j = 0; j < surface_norms[i].size(); j++) {
-		// 	rotate_point(surface_norms[i][j], offset);
-		// }
+		for (int j = 0; j < surface_norms[i].size(); j++) {
+			rotate_point(surface_norms[i][j], offset);
+		}
 	}
 }
 
@@ -557,12 +558,12 @@ void apply_centre(std::vector<Object> &objects)
 	}
 }
 
-void draw_objects(BYTE *fBuffer, std::vector<Object> &objects)
+void draw_objects(BYTE *fBuffer, std::vector<Object> &objects, std::vector<Object_norms> &norms)
 {
 	for (int i = 0; i < objects.size(); i++) {
 		if (!objects[i].properties.visible)
 			continue;
-		draw_object_3d(objects[i], fBuffer);
+		draw_object_3d(objects[i], norms[i], fBuffer);
 	}
 }
 
