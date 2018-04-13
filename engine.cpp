@@ -350,7 +350,7 @@ void fill_tri(Polygon triangle, BYTE *fBuffer)
 		end.b   += end_gradient.b   / end_gradient.y;
 		end.z   += end_gradient.z   / end_gradient.y; // For Z-Buffering
 	}
-	draw_tri(triangle, fBuffer); // Hide any rounding artifacts
+	//draw_tri(triangle, fBuffer); // Hide any rounding artifacts
 }
 
 Point rand_point()

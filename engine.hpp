@@ -13,7 +13,7 @@
 #define TMAX 1 // For parametric line equations
 #define X_OFFSET FRAME_WIDE / 2
 #define Y_OFFSET FRAME_HIGH / 2
-#define PERSPECTIVE 500
+#define PERSPECTIVE 700
 #define MaxNumObjs 20
 #define MaxNumPts 20//600
 #define MaxNumPolys 20//900

@@ -228,8 +228,6 @@ if (!loaded) {
 	}
 
 	draw_objects(pFrame, world_objects);
-
-	//translate_3d(RIGHT, 1);
 	
 	//sleep(1);
 	//usleep(100 * 1000);
