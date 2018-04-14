@@ -19,6 +19,16 @@ std::vector<Object> world_objects;
 int zBuffer[FRAME_WIDE * FRAME_HIGH];
 
 /*======================= Drawing Functions ================================= */
+
+/**
+ * draw_pixel_2d(const Point &point, BYTE *fBuffer) 
+ * -- Description:
+ * 	Maps a set of x and y coordinates to an index in the pixel buffer.
+ * Arguments:
+ * 	A reference to a Point struct containing x and y coordinates
+ * -- Side effects:
+ * 	This function directly modifies the frame buffer
+ */
 void draw_pixel_2d(const Point &point, BYTE *fBuffer)
 {
 	int x  =  ROUND(point.x);
@@ -56,6 +66,15 @@ void draw_pixel_3d(Point p, BYTE *fBuffer)
 	draw_pixel_2d(point, fBuffer);
 }
 
+/**
+ * project_point(const Point &p3d)
+ * -- Description:
+ * Projects a set of 3D coordinates onto 2D viewport
+ * -- Arguments:
+ * A Point struct containing 3D coorinates
+ * -- Return value:
+ * Returns a projected 2D point, which retains its original Z value for later use in z-buffering
+ */	
 Point project_point(const Point &p3d)
 {
 	Point p2d = {
@@ -81,6 +100,15 @@ void project_polygon(const Object &obj, std::vector<Polygon> &projected_polys)
 	}
 }
 
+/**
+ * draw_line(Point p1, Point p2, BYTE *fBuffer)
+ * -- Description
+ * Uses the DDA line drawing algorithm to draw a straight line between two points on the screen
+ * -- Arguments
+ * Two Point structs containging x and y coordinates
+ * -- Side effects
+ * Calls functions that modfiy the frame buffer
+ */
 void draw_line(Point p1, Point p2, BYTE *fBuffer)
 {
 	Point buffer = p1;
@@ -117,6 +145,16 @@ bool clip_test(double p, double q, double &u1, double &u2)
 	return true;
 }
 
+/**
+ * clip_line(Point p1, Point p2, BYTE *fBuffer)
+ * -- Description
+ * Tests whether parts of the line between p1 and p2 fall out of bounds.
+ * If out of bounds, calculates new endpoints at the boundaries.
+ * -- Arguments
+ * Two Point structs representing endpoints of a line
+ * -- Side Effects
+ * Calls functions that modify the frame buffer
+ */
 void clip_line(Point p1, Point p2, BYTE *fBuffer)
 {
 	//double dx = p2.x - p1.x;
@@ -155,9 +193,9 @@ void clip_line(Point p1, Point p2, BYTE *fBuffer)
 	}
 }
 
-// If tri contains more than 3 points, the excess will be ignored
 void draw_tri(const Polygon &tri, BYTE *fBuffer)
 {
+	// If tri contains more than 3 points, the excess will be ignored
 	clip_line(tri[0], tri[1], fBuffer);
 	clip_line(tri[0], tri[2], fBuffer);
 	clip_line(tri[1], tri[2], fBuffer);
@@ -189,14 +227,24 @@ Object rel_to_abs(const Object &rel)
 	return absolute;
 }
 
+/**
+ * draw_object_3d(const Object &obj, BYTE *fBuffer)
+ * -- Description
+ * Breaks an object into separate polygons to be filled individually
+ * If the surface normal of a face is positive, it will be skipped
+ * -- Arguments:
+ * An Object struct to be drawn
+ * -- Side Effects
+ * Calls functions that modify the frame buffer
+ */
 void draw_object_3d(const Object &obj, BYTE *fBuffer)
 {
 	std::vector<Polygon> projected_polys;
 	Object absolute = rel_to_abs(obj);
 	project_polygon(absolute, projected_polys); // Populates projected_polys
-	Object_norms norms = compute_surface_normals(obj);
+	//Object_norms norms = compute_surface_normals(obj);
 	for (int i = 0; i < projected_polys.size(); i++) {
-		long test = norms[i];
+		//long test = norms[i];
 		//if (norms[i] > 0) // Enable Back-face culling
 			fill_poly(projected_polys[i], fBuffer);
 	}
@@ -212,13 +260,11 @@ void draw_wireframe_3d(const Object &obj, BYTE *fBuffer)
 			polys[i][j].r = 255;
 			polys[i][j].g = 255;
 			polys[i][j].b = 255;
-			//polys[i][j].z -= 1;
 		}
 		draw_poly(polys[i], fBuffer);
 	}
 }
 
-// Check whether two points are identical in location and colour
 bool point_cmp(const Point &a, const Point &b)
 {
 	return (
@@ -241,6 +287,17 @@ int find_point(const Polygon &neighbours, const Point &point)
 	return -1;
 }
 
+/**
+ * fill_poly(Polygon poly, BYTE *fBuffer)
+ * -- Description
+ * Performs triangle decomposition on the given polygon and passes each triangle to fill_tri()
+ * Stops when n-2 triangles have been generated.
+ * Supports both concave and convex polygons.
+ * -- Arguments:
+ * A Polygon to be filled
+ * -- Side Effects
+ * Calls functions that modify the frame buffer
+ */ 
 void fill_poly(Polygon poly, BYTE *fBuffer)
 {
 	Polygon neighbours = poly;
@@ -249,7 +306,7 @@ void fill_poly(Polygon poly, BYTE *fBuffer)
 	for (int i = 0; tri_count < poly.size() - 2; i++) {
 		if (i % poly.size() == 0 && i > 0) {
 			if (poly.size() == neighbours.size())
-				break; // plane is flipped, all sides concave
+				break; // All sides are concave; the plane is facing away from the screen
 			poly = neighbours; // Dump the triangles that have already been drawn
 		}
 		int current = find_point(neighbours, poly[i % poly.size()]); // Wrap to beginning
@@ -264,9 +321,9 @@ void fill_poly(Polygon poly, BYTE *fBuffer)
 	}
 }
 
-// Test to see if p0 is on the left/right side of p2 --> p1 edge.
 bool concave(const Point &p2, const Point &p1, const Point &p0)
 {
+	// Test to see if p0 is on the left/right side of p2 --> p1 edge.
     return ((p2.x - p1.x) * (p0.y - p1.y) - (p2.y - p1.y) * (p0.x - p1.x)) < 0;
 }
 
@@ -297,6 +354,7 @@ bool same_side(const Point &a, const Point &b, const Point &l1, const Point &l2)
 
 bool collinear(const Polygon &tri)
 {
+	// Checks whether all the gradients are equal
 	double grad = (double)(tri[1].y - tri[0].y) / (double)(tri[1].x - tri[0].x);
 	if ((double)(tri[2].y - tri[1].y) / (double)(tri[2].x - tri[1].x) != grad)
 		return false;
@@ -330,6 +388,16 @@ void round_vertices(Polygon &poly)
 	}
 }
 
+/**
+ * fill_tri(Polygon triangle, BYTE *fBuffer)
+ * -- Description
+ * Applies smoothshading to the given triangle using the scanline method
+ * Supports special cases: collinear and flat-topped triangles
+ * -- Arguments 
+ * A Polygon containing 3 points representing a triangle
+ * -- Side effects
+ * Calls functions that modify the frame buffer
+ */
 void fill_tri(Polygon triangle, BYTE *fBuffer)
 {
 	round_vertices(triangle);
@@ -391,9 +459,6 @@ Polygon rand_polygon(const Point &centre, double angle_increment)
 	return poly;
 }
 
-/*
- * Sorts the points in ascending Y order
- */
 void sort_vertices(Polygon &triangle)
 {
 	Point *temp = NULL;
@@ -418,7 +483,8 @@ std::vector<std::string> tokenize(std::string str, char sep=' ')
 	return ret;
 }
 
-Point toks_to_p3d(std::vector<std::string> &toks) // TODO: handle comments
+
+Point toks_to_p3d(std::vector<std::string> &toks)
 {
 	Point p3d;
 	p3d.x = atoi(toks[0].c_str());
@@ -439,9 +505,22 @@ Polygon_ref toks_to_poly3d(std::vector<std::string> &toks)
 	return poly;
 }
 
+/**
+ * load_vjs(std::string fpath, Object &obj, const Object_attribs &properties)
+ * -- Description
+ * Loads object in given VJS file
+ * -- Arguments
+ * String containing VJS file path, and an object + its attributes struct in which to load the data
+ * -- Side effects
+ * Populates the given Object (through reference)
+ */
 void load_vjs(std::string fpath, Object &obj, const Object_attribs &properties)
 {
 	std::ifstream infile(fpath);
+	if (!infile) {
+		printf("The file doesn't exist\n");
+		exit(1);
+	}
 	std::string linebuffer;
 	std::getline(infile, linebuffer);
 	std::vector<std::string> toks = tokenize(linebuffer, ',');
@@ -464,8 +543,6 @@ void load_vjs(std::string fpath, Object &obj, const Object_attribs &properties)
 	obj.properties = properties;
 }
 
-// TODO: Refactor so it just takes a Point containing offsets,
-// removing need for switch
 void translate_3d(Object &obj, Point &offsets) 
 {
 	obj.properties.centre.x += offsets.x;
@@ -493,24 +570,34 @@ void rotate_object(Object &obj, Rotation_offsets offset)
 	}
 }
 
+/**
+ *  rotate_point(Point &point, Rotation_offsets offset) 
+ * -- Description
+ * Applies 3D rotation 3 axes in the order X, Y, Z.
+ * -- Arguments
+ * Point struct containing 3D coordinates to be rotated,
+ * Rotation offset containing the rotation deltas in radians
+ * -- Side effects
+ * Modifies the values in the point struct (through indirection)
+ */
 void rotate_point(Point &point, Rotation_offsets offset)
 {
 	double x = 0, y = 0, z = 0;
-	// About X
+	// Rotate About X
 	if (offset.x) {
 		y = point.y * cos(offset.x) - point.z * sin(offset.x);
 		z = point.y * sin(offset.x) + point.z * cos(offset.x);
 		point.y = y;
 		point.z = z;
 	}
-	// About Y
+	// Rotate About Y
 	if (offset.y) {
 		z = point.z * cos(offset.y) - point.x * sin(offset.y);
 		x = point.z * sin(offset.y) + point.x * cos(offset.y);
 		point.z = z;
 		point.x = x;
 	}
-	// About Z
+	// Rotate About Z
 	if (offset.z) {
 		x = point.x * cos(offset.z) - point.y * sin(offset.z);
 		y = point.x * sin(offset.z) + point.y * cos(offset.z);
@@ -573,7 +660,17 @@ void draw_objects(BYTE *fBuffer, std::vector<Object> &objects)
 	}
 }
 
-Object_norms compute_surface_normals(const Object &obj)
+/**
+ * compute_surface_normals(const Object &obj) 
+ * -- Description
+ * Computes the areas of each surface in the given Object using the 'shoelace method'
+ * The sign of the area is used to detect the orientation of a plane for backface culling
+ * -- Arguments
+ * An Object for which to calculate the normals
+ * -- Return values
+ * An vector containing surface normals for each polygon in the object
+ */
+Object_norms compute_surface_normals(const Object &obj) // For backface culling
 {
 	std::vector<Polygon> surfaces;
 	project_polygon(obj, surfaces);

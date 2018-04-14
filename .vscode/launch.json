@@ -10,7 +10,7 @@
             "type": "cppdbg",
             "request": "launch",
             "program": "${workspaceFolder}/engine",
-            "args": ["pyramid.vjs"],
+            "args": ["balh"],
             "stopAtEntry": false,
             "cwd": "${workspaceFolder}",
             "environment": [],
