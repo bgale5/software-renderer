@@ -10,7 +10,7 @@
             "type": "cppdbg",
             "request": "launch",
             "program": "${workspaceFolder}/engine",
-            "args": ["z_buffer"],
+            "args": ["cube.vjs"],
             "stopAtEntry": false,
             "cwd": "${workspaceFolder}",
             "environment": [],
