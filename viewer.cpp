@@ -77,7 +77,7 @@ void shade_test()
     properties.centre.x = FRAME_WIDE / 2;
     properties.centre.y = FRAME_HIGH / 2;
     properties.centre.z = 0;
-    properties.scale = 1.5;
+    properties.scale = 1;
     properties.visible = true;
     properties.fixed_location = true;
     load_vjs("triangle.vjs", triangle, properties);
@@ -87,6 +87,27 @@ void shade_test()
 void z_buffer_test()
 {
     z_buffer_test_switch = true;
+    Object static_cube;
+    Object free_cube;
+    Object_attribs props;
+    load_vjs("cube.vjs", static_cube, props);
+    load_vjs("cube.vjs", free_cube, props);
+    static_cube.properties.centre.x = FRAME_WIDE / 2 - 300;
+    static_cube.properties.centre.y = FRAME_HIGH / 2;
+    static_cube.properties.centre.z = 500;
+    static_cube.properties.fixed_location = true;
+    static_cube.properties.fixed_orientation = true;
+    static_cube.properties.visible = true;
+    static_cube.properties.scale = 1;
+    free_cube.properties.centre.x = FRAME_WIDE / 2 - 300;
+    free_cube.properties.centre.y = FRAME_HIGH / 2;
+    free_cube.properties.centre.z = -100;
+    free_cube.properties.fixed_location = false;
+    free_cube.properties.fixed_orientation = false;
+    free_cube.properties.visible = true;
+    free_cube.properties.scale = 1;
+    world_objects.push_back(static_cube);
+    world_objects.push_back(free_cube);
 }
 
 void polygon_test()

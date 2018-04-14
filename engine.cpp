@@ -543,9 +543,6 @@ void apply_rotations(Rotation_offsets offset, std::vector<Object> &objects)
 		if (!objects[i].properties.visible || objects[i].properties.fixed_orientation)
 			continue;
 		rotate_object(objects[i], offset);
-		// for (int j = 0; j < surface_norms[i].size(); j++) {
-		// 	rotate_point(surface_norms[i][j], offset);
-		// }
 	}
 }
 

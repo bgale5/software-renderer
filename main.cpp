@@ -228,6 +228,9 @@ void BuildFrame(BYTE *pFrame, int view)
 		draw_poly(triangle, pFrame);
 		sleep(1);
 
+	} else if (z_buffer_test_switch) {
+		apply_translations({0,0,0,0,0,TRANSLATION_FACTOR});
+		usleep(100 * 1000);
 	}
 	draw_objects(pFrame, world_objects);
 }
