@@ -28,7 +28,6 @@ void init_viewer(int argc, char **argv)
         z_buffer_test();
     else if (vjs_path.compare("polygon") == 0)
         polygon_test();
-    // TODO: check for demo cases
     else {
         load_compass();
         load_user_object(vjs_path);
@@ -46,6 +45,7 @@ void load_compass()
     properties.centre.z = 0;
     properties.fixed_location = true;
     properties.fixed_orientation = false;
+    properties.fixed_scale = true;
     load_vjs(compass_path, compass, properties);
     world_objects.push_back(compass); // Compass should always be index 0; call this first
 }

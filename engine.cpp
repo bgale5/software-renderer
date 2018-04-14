@@ -197,7 +197,7 @@ void draw_object_3d(const Object &obj, BYTE *fBuffer)
 	Object_norms norms = compute_surface_normals(obj);
 	for (int i = 0; i < projected_polys.size(); i++) {
 		long test = norms[i];
-		//if (norms[i] > 0) // Back-face culling
+		//if (norms[i] > 0) // Enable Back-face culling
 			fill_poly(projected_polys[i], fBuffer);
 	}
 }

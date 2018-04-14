@@ -10,7 +10,7 @@
             "type": "cppdbg",
             "request": "launch",
             "program": "${workspaceFolder}/engine",
-            "args": ["concave_wedge.vjs"],
+            "args": ["pyramid.vjs"],
             "stopAtEntry": false,
             "cwd": "${workspaceFolder}",
             "environment": [],
