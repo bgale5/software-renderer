@@ -217,8 +217,7 @@ void BuildFrame(BYTE *pFrame, int view)
 		fill_poly(poly, pFrame);
 		sleep(1);
 	} else if (shade_test_switch) {
-		
+		apply_rotations({0, 0, 2 * M_PI / 360});
 	}
-	else
-		draw_objects(pFrame, world_objects);
+	draw_objects(pFrame, world_objects);
 }

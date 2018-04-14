@@ -72,6 +72,16 @@ void clip_test()
 void shade_test()
 {
     shade_test_switch = true;
+    Object triangle;
+    object_attribs properties;
+    properties.centre.x = FRAME_WIDE / 2;
+    properties.centre.y = FRAME_HIGH / 2;
+    properties.centre.z = 0;
+    properties.scale = 1.5;
+    properties.visible = true;
+    properties.fixed_location = true;
+    load_vjs("triangle.vjs", triangle, properties);
+    world_objects.push_back(triangle); 
 }
 
 void z_buffer_test()
