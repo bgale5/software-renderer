@@ -50,6 +50,20 @@ void load_compass()
     world_objects.push_back(compass); // Compass should always be index 0; call this first
 }
 
+void print_keybindings()
+{
+    printf("\nKeybindings:\n");
+    printf("========================================\n");
+    printf("WASD: Translate the object on X,Y axes\n");
+    printf("i, o: Translate the object on Z axis\n");
+    printf("=, -: Scale the object\n");
+    printf("x, y, z: Rotate on respective axis\n");
+    printf("X, Y, Z: Rotate backwards on respective axis\n");
+    printf("r, R: Rotate diagonally\n");
+    printf("c: Centre the object\n");
+    printf("ESC: Exit\n");
+}
+
 void load_user_object(std::string vjs_path)
 {
     Object model;
@@ -62,6 +76,7 @@ void load_user_object(std::string vjs_path)
     properties.fixed_orientation = false;
     load_vjs(vjs_path, model, properties);
     world_objects.push_back(model);
+    print_keybindings();
 }
 
 void clip_test()
