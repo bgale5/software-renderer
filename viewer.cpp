@@ -41,8 +41,8 @@ void load_compass()
     Object compass;
     Object_attribs properties;
     properties.scale = 0.5; // arbitrary compass size
-    properties.centre.x = 50;
-    properties.centre.y = 50;
+    properties.centre.x = 60;
+    properties.centre.y = 60;
     properties.centre.z = 0;
     properties.fixed_location = true;
     properties.fixed_orientation = false;

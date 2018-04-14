@@ -114,11 +114,11 @@ void reshape(int w, int h)
 
 void OnMouse(int button, int state, int x, int y)
 {
-	if (button == GLUT_LEFT_BUTTON && state == GLUT_UP)
-	{
-		PlaySoundEffect("Laser.wav"); 
-		if (++shade > 16) shade = 0;	
-	}
+	// if (button == GLUT_LEFT_BUTTON && state == GLUT_UP)
+	// {
+	// 	PlaySoundEffect("Laser.wav"); 
+	// 	if (++shade > 16) shade = 0;	
+	// }
 }
 
 void OnKeypress(unsigned char key, int x, int y)
