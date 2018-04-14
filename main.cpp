@@ -114,11 +114,11 @@ void reshape(int w, int h)
 
 void OnMouse(int button, int state, int x, int y)
 {
-	// if (button == GLUT_LEFT_BUTTON && state == GLUT_UP)
-	// {
-	// 	PlaySoundEffect("Laser.wav"); 
-	// 	if (++shade > 16) shade = 0;	
-	// }
+	if (button == GLUT_LEFT_BUTTON && state == GLUT_UP)
+	{
+		PlaySoundEffect("Laser.wav"); 
+		if (++shade > 16) shade = 0;	
+	}
 }
 
 void OnKeypress(unsigned char key, int x, int y)
@@ -138,7 +138,11 @@ void OnKeypress(unsigned char key, int x, int y)
 	case 'o': apply_translations({0, 0, 0, 0, 0, -TRANSLATION_FACTOR}); break;
 	case '=': apply_scale(SCALE_FACTOR); break;
 	case '-': apply_scale(-SCALE_FACTOR); break;
-	case 'c': apply_centre(); break;
+	case 'c': apply_centre(); 
+	{
+		PlaySoundEffect("pop.wav");
+		break;
+	}
 	case 'z': apply_rotations({0, 0, ROTATION_FACTOR}); break;
 	case 'x': apply_rotations({ROTATION_FACTOR, 0, 0}); break;
 	case 'y': apply_rotations({0, ROTATION_FACTOR, 0}); break;
