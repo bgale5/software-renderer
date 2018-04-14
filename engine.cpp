@@ -197,7 +197,7 @@ void draw_object_3d(const Object &obj, BYTE *fBuffer)
 	Object_norms norms = compute_surface_normals(obj);
 	for (int i = 0; i < projected_polys.size(); i++) {
 		long test = norms[i];
-		if (norms[i] > 0)
+		//if (norms[i] > 0) // Back-face culling
 			fill_poly(projected_polys[i], fBuffer);
 	}
 }
@@ -418,7 +418,7 @@ std::vector<std::string> tokenize(std::string str, char sep=' ')
 	return ret;
 }
 
-Point toks_to_p3d(std::vector<std::string> &toks)
+Point toks_to_p3d(std::vector<std::string> &toks) // TODO: handle comments
 {
 	Point p3d;
 	p3d.x = atoi(toks[0].c_str());
@@ -531,7 +531,7 @@ void apply_translations(Point offset, std::vector<Object> &objects)
 {
 	for (int i = 0; i < objects.size(); i++)
 	{
-		if (!objects[i].properties.visible || objects[i].properties.fixed)
+		if (!objects[i].properties.visible || objects[i].properties.fixed_location)
 			continue;
 		translate_3d(objects[i], offset);
 	}
@@ -540,7 +540,7 @@ void apply_translations(Point offset, std::vector<Object> &objects)
 void apply_rotations(Rotation_offsets offset, std::vector<Object> &objects)
 {
 	for (int i = 0; i < objects.size(); i++) {
-		if (!objects[i].properties.visible || objects[i].properties.fixed)
+		if (!objects[i].properties.visible || objects[i].properties.fixed_orientation)
 			continue;
 		rotate_object(objects[i], offset);
 		// for (int j = 0; j < surface_norms[i].size(); j++) {
@@ -552,7 +552,7 @@ void apply_rotations(Rotation_offsets offset, std::vector<Object> &objects)
 void apply_scale(double offset, std::vector<Object> &objects)
 {
 	for (int i = 0; i < objects.size(); i++) {
-		if (!objects[i].properties.visible || objects[i].properties.fixed)
+		if (!objects[i].properties.visible || objects[i].properties.fixed_scale)
 			continue;
 		scale_3d(objects[i], offset);
 	}
@@ -561,7 +561,7 @@ void apply_scale(double offset, std::vector<Object> &objects)
 void apply_centre(std::vector<Object> &objects)
 {
 	for (int i = 0; i < objects.size(); i++) {
-		if (!objects[i].properties.visible || objects[i].properties.fixed)
+		if (!objects[i].properties.visible || objects[i].properties.fixed_location)
 			continue;
 		centre_3d(objects[i]);
 	}
@@ -573,7 +573,6 @@ void draw_objects(BYTE *fBuffer, std::vector<Object> &objects)
 		if (!objects[i].properties.visible)
 			continue;
 		draw_object_3d(objects[i], fBuffer);
-		draw_wireframe_3d(objects[i], fBuffer);
 	}
 }
 
@@ -591,7 +590,6 @@ Object_norms compute_surface_normals(const Object &obj)
 
 long polygon_area(Polygon poly) // shoelace method
 {
-	//round_vertices(poly);
 	long  area = 0;
 	for (int i = 0; i < poly.size(); i++) {
 		if (i == poly.size() -1) {
@@ -603,10 +601,5 @@ long polygon_area(Polygon poly) // shoelace method
 			area -= poly[i].y * poly[i + 1].x;
 		}
 	}
-	Point test1 = poly[0];
-	Point test2 = poly[1];
-	Point test3 = poly[2];
-	Point test4 = poly[3];
-	double size = poly.size();
 	return area;
 }

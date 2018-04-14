@@ -5,6 +5,7 @@
 #include <unistd.h>			//- for sleep()
 #include <cstring>
 #include "engine.hpp"
+#include "viewer.hpp"
 #include <cmath>
 
 #ifdef _WIN32
@@ -50,6 +51,8 @@ int main(int argc, char** argv)
 	glutInitWindowSize(FRAME_WIDE, FRAME_HIGH);
 	glutInitWindowPosition(100, 100);
 	glutCreateWindow(argv[0]);
+
+	init_viewer(argc, argv);
 /*
 #ifdef WIN32
 	//- eliminate flashing --
@@ -145,7 +148,7 @@ void OnKeypress(unsigned char key, int x, int y)
 	case 'r': apply_rotations({ROTATION_FACTOR, ROTATION_FACTOR, ROTATION_FACTOR}, world_objects); break;
 	case 'R': apply_rotations({-ROTATION_FACTOR, -ROTATION_FACTOR, -ROTATION_FACTOR}, world_objects); break;
 	}
-	//PlaySoundEffect("Whoosh.wav"); 
+	PlaySoundEffect("Whoosh.wav"); 
 }
 
 
@@ -209,24 +212,6 @@ int counter = 0;
 Point centre;
 void BuildFrame(BYTE *pFrame, int view)
 {
-	// -------  POLY TEST ----- //
-
-	// Polygon poly = rand_polygon({FRAME_WIDE / 2, FRAME_HIGH / 2, 0, 0, 0}, M_PI / 5);
-	// fill_poly(poly, pFrame);
-
-	// ----------- VJS LOAD TEST --------//
-
-if (!loaded) {
-		Object_attribs temp_properties;
-		temp_properties.scale = 1;
-		temp_properties.centre = {300, 350, 100, 0, 0, 0};
-		temp.properties.visible = true;
-		temp.properties.fixed = false;
-		load_vjs("concave_wedge.vjs", temp, temp_properties);
-		loaded = true;
-		world_objects.push_back(temp);
-	}
-
 	draw_objects(pFrame, world_objects);
 	
 	//sleep(1);

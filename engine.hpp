@@ -18,7 +18,7 @@
 #define MaxNumPts 20//600
 #define MaxNumPolys 20//900
 #define NumSidesPoly 20 //600
-#define TRANSLATION_FACTOR 10
+#define TRANSLATION_FACTOR 20
 #define ROTATION_FACTOR 2 * M_PI / 360
 #define SCALE_FACTOR 0.05
 
@@ -38,7 +38,9 @@ typedef struct object_attribs {
 	Point centre;
 	double scale;
 	bool visible = true;
-	bool fixed = false;
+	bool fixed_location = false;
+	bool fixed_orientation = false;
+	bool fixed_scale = false;
 } Object_attribs;
 
 typedef struct object {
