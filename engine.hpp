@@ -106,5 +106,5 @@ void spawn_object(const Object &obj);
 long polygon_area(Polygon poly);
 void draw_objects(BYTE *fBuffer, std::vector<Object> &objects);
 void apply_centre(std::vector<Object> &objects);
-void apply_rotations(Rotation_offsets offset, std::vector<Object> &objects);
+void apply_rotations(Rotation_offsets offset, std::vector<Object> &objects=world_objects);
 #endif

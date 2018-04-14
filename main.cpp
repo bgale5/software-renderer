@@ -139,12 +139,12 @@ void OnKeypress(unsigned char key, int x, int y)
 	case '=': apply_scale(SCALE_FACTOR); break;
 	case '-': apply_scale(-SCALE_FACTOR); break;
 	case 'c': apply_centre(); break;
-	case 'z': apply_rotations({0, 0, ROTATION_FACTOR}, world_objects); break;
-	case 'x': apply_rotations({ROTATION_FACTOR, 0, 0}, world_objects); break;
-	case 'y': apply_rotations({0, ROTATION_FACTOR, 0}, world_objects); break;
-	case 'Z': apply_rotations({0, 0, -ROTATION_FACTOR}, world_objects); break;
-	case 'X': apply_rotations({-ROTATION_FACTOR, 0, 0}, world_objects); break;
-	case 'Y': apply_rotations({0, -ROTATION_FACTOR, 0}, world_objects); break;
+	case 'z': apply_rotations({0, 0, ROTATION_FACTOR}); break;
+	case 'x': apply_rotations({ROTATION_FACTOR, 0, 0}); break;
+	case 'y': apply_rotations({0, ROTATION_FACTOR, 0}); break;
+	case 'Z': apply_rotations({0, 0, -ROTATION_FACTOR}); break;
+	case 'X': apply_rotations({-ROTATION_FACTOR, 0, 0}); break;
+	case 'Y': apply_rotations({0, -ROTATION_FACTOR, 0}); break;
 	case 'r': apply_rotations({ROTATION_FACTOR, ROTATION_FACTOR, ROTATION_FACTOR}, world_objects); break;
 	case 'R': apply_rotations({-ROTATION_FACTOR, -ROTATION_FACTOR, -ROTATION_FACTOR}, world_objects); break;
 	}
