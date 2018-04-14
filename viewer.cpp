@@ -4,6 +4,15 @@
 #include "engine.hpp"
 #include "viewer.hpp"
 
+
+//============= GLOBAL VARIABLES ===========================//
+bool z_buffer_test_switch = false;
+bool shade_test_switch = false;
+bool clip_test_switch = false;
+bool polygon_test_switch = false;
+
+// ============= VIEWER FUNCTIONS ==========================//
+
 void init_viewer(int argc, char **argv)
 {
     if (argc != 2) {
@@ -11,9 +20,19 @@ void init_viewer(int argc, char **argv)
         exit(0);
     }
     std::string vjs_path = argv[1];
+    if (vjs_path.compare("clip") == 0)
+        clip_test();
+    else if (vjs_path.compare("smoothshading") == 0)
+        shade_test();
+    else if(vjs_path.compare("z_buffer") == 0)
+        z_buffer_test();
+    else if (vjs_path.compare("polygon") == 0)
+        polygon_test();
     // TODO: check for demo cases
-    load_compass();
-    load_user_object(vjs_path);
+    else {
+        load_compass();
+        load_user_object(vjs_path);
+    }
 }
 
 void load_compass()
@@ -43,4 +62,24 @@ void load_user_object(std::string vjs_path)
     properties.fixed_orientation = false;
     load_vjs(vjs_path, model, properties);
     world_objects.push_back(model);
+}
+
+void clip_test()
+{
+    clip_test_switch = true;
+}
+
+void shade_test()
+{
+    shade_test_switch = true;
+}
+
+void z_buffer_test()
+{
+    z_buffer_test_switch = true;
+}
+
+void polygon_test()
+{
+    polygon_test_switch = true;
 }

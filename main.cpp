@@ -212,8 +212,13 @@ int counter = 0;
 Point centre;
 void BuildFrame(BYTE *pFrame, int view)
 {
-	draw_objects(pFrame, world_objects);
-	
-	//sleep(1);
-	//usleep(100 * 1000);
+	if (polygon_test_switch) {
+		Polygon poly = rand_polygon({FRAME_WIDE / 2, FRAME_HIGH / 2}, M_PI / 4.0);
+		fill_poly(poly, pFrame);
+		sleep(1);
+	} else if (shade_test_switch) {
+		
+	}
+	else
+		draw_objects(pFrame, world_objects);
 }
