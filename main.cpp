@@ -218,6 +218,16 @@ void BuildFrame(BYTE *pFrame, int view)
 		sleep(1);
 	} else if (shade_test_switch) {
 		apply_rotations({0, 0, 2 * M_PI / 360});
+	} else if (clip_test_switch) {
+		Point p0 = rand_point();
+		Point p1 = rand_point();
+		Point p2 = rand_point();
+		Polygon triangle = {p0, p1, p2};
+		triangle[0].x += rand() % FRAME_WIDE;
+		triangle[0].y += rand() % FRAME_HIGH;
+		draw_poly(triangle, pFrame);
+		sleep(1);
+
 	}
 	draw_objects(pFrame, world_objects);
 }

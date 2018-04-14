@@ -10,7 +10,7 @@
             "type": "cppdbg",
             "request": "launch",
             "program": "${workspaceFolder}/engine",
-            "args": ["smoothshading"],
+            "args": ["clip"],
             "stopAtEntry": false,
             "cwd": "${workspaceFolder}",
             "environment": [],
