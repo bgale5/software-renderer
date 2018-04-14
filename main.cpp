@@ -148,7 +148,7 @@ void OnKeypress(unsigned char key, int x, int y)
 	case 'r': apply_rotations({ROTATION_FACTOR, ROTATION_FACTOR, ROTATION_FACTOR}, world_objects); break;
 	case 'R': apply_rotations({-ROTATION_FACTOR, -ROTATION_FACTOR, -ROTATION_FACTOR}, world_objects); break;
 	}
-	PlaySoundEffect("Whoosh.wav"); 
+	PlaySoundEffect("tick.wav"); 
 }
 
 

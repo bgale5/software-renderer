@@ -37,12 +37,12 @@ void init_viewer(int argc, char **argv)
 
 void load_compass()
 {
-    std::string compass_path = "compass_point.vjs";
+    std::string compass_path = "compass.vjs";
     Object compass;
     Object_attribs properties;
-    properties.scale = 0.1; // arbitrary compass size
-    properties.centre.x = FRAME_WIDE - 30;
-    properties.centre.y = FRAME_HIGH - 30;
+    properties.scale = 0.5; // arbitrary compass size
+    properties.centre.x = 50;
+    properties.centre.y = 50;
     properties.centre.z = 0;
     properties.fixed_location = true;
     properties.fixed_orientation = false;
